@@ -179,27 +179,27 @@ void runMotors() {
  * runMotor????()  Called every loop
  *****************************************************************************/
 void runMotorRight() {
-  float motorGain = K0;
+  float g = MOTOR_GAIN;  // gain computed locally
   readSpeedRight();
-
+  
   float wsError = (float) (targetWKphRight - wKphRight);
-  if (abs(targetWKphRight) < 0.5) {  // reduce gain below .5 fps
-    motorGain = 1.0 + (abs(targetWKphRight) * 8.0);
+  if (abs(targetWKphRight) < 1.0) {  // reduce gain below .5 kph
+    g = (abs(targetWKphRight) * g);
   }
-  motorTargetKphRight = targetWKphRight + (wsError * motorGain);  // Target speed to correct error
+  motorTargetKphRight = targetWKphRight + (wsError * g);  // Target speed to correct error
   float pw = abs(motorTargetKphRight * KPH_TO_PW);            // Pw for the target.
   setMotorRight(pw, motorTargetKphRight > 0.0);
 }
 
 void runMotorLeft() {
-  float motorGain = K0;
+  float g = MOTOR_GAIN;
   readSpeedLeft();
 
   float wsError = (float) (targetWKphLeft - wKphLeft);
-  if (abs(targetWKphLeft) < 0.5) {  // reduce gain below .5 fps
-    motorGain = 1.0 + (abs(targetWKphLeft) * 8.0);
+  if (abs(targetWKphLeft) < 1.0) {  // reduce gain below .5 kph
+    g = (abs(targetWKphLeft) * g);
   }
-  motorTargetKphLeft = targetWKphLeft + (wsError * motorGain);  // Target speed to correct error
+  motorTargetKphLeft = targetWKphLeft + (wsError * g);  // Target speed to correct error
   float pw = abs(motorTargetKphLeft * KPH_TO_PW);            // Pw for the target.
   setMotorLeft(pw, motorTargetKphLeft > 0.0);
 }

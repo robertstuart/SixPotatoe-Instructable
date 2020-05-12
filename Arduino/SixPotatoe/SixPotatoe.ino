@@ -113,6 +113,7 @@ boolean isLogStrWrap = false;
 String logHeader = "No Header";
 
 // Motor varialbles
+const float MOTOR_GAIN = K0 / (MOTOR_STALL_TORQUE * 0.11); // adjust gain by motor torque
 volatile long tickPositionRight = 0;
 volatile long tickPositionLeft = 0;
 volatile unsigned long tickTimeRight = 0;
@@ -259,7 +260,6 @@ void loop() {
   else if (IS_TEST2)  systemTest2();
   else if (IS_TEST3)  systemTest3();
   else if (IS_TEST4)  systemTest4();
-  else if (IS_TEST5)  systemTest5();
   else run();
 }
 
@@ -324,18 +324,6 @@ void systemTest4() {
       targetWKphLeft = y - x;
       runMotors();
       Serial.printf("%7.2f %7.2f %7.2f %7.2f %5d\n", wKphRight, wKphLeft, x, y, isRunning);
-      blinkTeensy();
-    }
-  }
-}
-// 
-void systemTest5() {
-  while (true) {
-    commonTasks();
-    if (imu.isNewImuData()) {
-      readSpeedRight();
-      readSpeedLeft();
-      Serial.printf("%7.2f %7.2f %3d %3d\n", wKphRight, wKphLeft, tickPositionRight, tickPositionLeft);
       blinkTeensy();
     }
   }

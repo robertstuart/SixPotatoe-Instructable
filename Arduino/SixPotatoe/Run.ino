@@ -37,37 +37,30 @@ void run() {
  *  rcControl() Control speed & steering from RC controller
  *****************************************************************************/
 void rcControl() {
-  const float Z_TURN = 0.6;
+  const float Z_TURN = 3.0;
   const float KPH_TC = 0.1;
-  static float lpWKph = 0.0;
+  static float lpWKph = 0.0; // prevent zero
   float zeroTurn = 0.0;
-  float part = 0.0;
-  // Set values for balancing
-  balanceTargetKph = controllerY * K30;
-//  float yfac = (((1.0 - abs(controllerY)) * 01.5) + 0.5) * 2.0; 
-//  balanceSteerAdjustment = -yfac * controllerX; 
 
-  // LP filter the wheel kph
-  lpWKph = (wKph * KPH_TC) + (lpWKph * (1.0 - KPH_TC));
+  balanceTargetKph = controllerY * MAX_MOTOR_KPH * K30;
+  lpWKph = (wKph * KPH_TC) + (lpWKph * (1.0 - KPH_TC)); // LP filter  
+  if (abs(lpWKph) < 0.01) lpWKph = 0.01;  // can't divide by zero.
   
   float x = constrain(controllerX, -.9999, 0.9999);
-  float diff = pow(abs(x), 3.0);
-//  float radius = 0.14 / diff;
-  float maxDiff = 2.0 / abs(lpWKph); // Limit radius at higher speeds.
+  float sign = (x < 0.0) ? 1.0 : -1.0;
+  float diff = pow(abs(x), 2.4) * sign;
+
+  // Limit radius at higher speeds.
+  float maxDiff = 2.0 / abs(lpWKph); 
   if (diff > maxDiff) diff = maxDiff;
-  if (x > 0.0) diff = -diff;
-  if (lpWKph < 0.0) diff = -diff;
+
+  // Add turn at low speeds so can turn in place
   float absKph = abs(lpWKph);
   if (absKph < Z_TURN) {
-    part = (Z_TURN - absKph) / Z_TURN;
-    zeroTurn = part * x * 2.0;
+    float part = (Z_TURN - absKph) / Z_TURN;
+    zeroTurn = part * x * 4.0;
   }
   
-//static int loop = 0;
-//if ((++loop % 10) == 0) {
-//  if (isRunning) addLog(lpWKph, diff, maxDiff, radius);  
-//} //Serial.println(diff);
-
   balanceSteerAdjustment = (diff * lpWKph) - zeroTurn;
 
   // Set values for on the ground (!isUpright)
