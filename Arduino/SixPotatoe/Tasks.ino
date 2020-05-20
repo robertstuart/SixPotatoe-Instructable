@@ -122,29 +122,6 @@ void checkUpright() {
 
 
 
-
-
-//
-//  
-////  isUpright = true; return;
-//  static unsigned long tTime = 0UL; // time of last state change
-//  static boolean tState = false;  // Timed state. true = upright
-//
-//  boolean cState = (abs(imu.maPitch) < K15); // Current real state
-//  if (!cState && tState) {
-//    tTime = timeMilliseconds; // Start the timer for a state change to fallen.
-//  } else if (!cState) {
-//    if ((timeMilliseconds - tTime) > 50) {
-//      isUpright = false;
-//    }
-//  } else {
-//    isUpright = true;
-//  }
-//  tState = cState;
-//}
-
-
-
 /*****************************************************************************-
  * checkLogDump() Dump the log to the terminal so that the data can be 
  *                captured and analyzed by Excel.
@@ -284,7 +261,7 @@ const int RC_MAX = 2150;
 const int RC_MIN = 872;
 const int RC_RANGE = RC_MAX - RC_MIN;
 const int RC_MID = (RC_RANGE / 2) + RC_MIN ;
-void ch1Isr() {
+void ch1Isr() { // ControllerX between -1.0 and +1.0
   static unsigned long riseTime = 0UL;
   unsigned long t = micros();
   if (digitalReadFast(CH1_RADIO_PIN)) {

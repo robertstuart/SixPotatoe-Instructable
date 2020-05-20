@@ -3,7 +3,7 @@
  *            Functions to acces the Invensense ICM-20948.
  *         It uses the library from Sparkfun.  The enumerated
  *         values are specified in the following header file:
- *  "Arduino\libraries\SparkFun_9DoF_IMU_Breakout_-_ICM_20948_-_Arduino_Library\src\util\ICM_20948_ENUMERATIONS.h"
+ *  "SparkFun_9DoF_IMU_Breakout_-_ICM_20948_-_Arduino_Library\src\util\ICM_20948_ENUMERATIONS.h"
  *            
  *****************************************************************************/
 #include "IMU.h"

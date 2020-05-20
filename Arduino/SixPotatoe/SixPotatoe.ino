@@ -17,23 +17,21 @@ const bool ENCODER_PHASE = true;
 #ifdef YELLOW_1150
 const float MOTOR_RPM = 1150.0;         // RPM at 12V
 const float MOTOR_GEAR_RATIO = 5.2;
-const float MOTOR_STALL_TORQUE = 7.9;   // kgf-cm
 const float MOTOR_EVENTS = 28.0;        // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = true
-;
+const bool ENCODER_PHASE = true;
+const float K0_MULT = 0.9;
 #endif // YELLOW_1150
 
 #ifdef HD_437
 const float MOTOR_RPM = 437.0;          // RPM at 12V
 const float MOTOR_GEAR_RATIO = 19.2;
-const float MOTOR_STALL_TORQUE = 22.0;  // kgf-cm
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = false;
+const float K0_MULT = 0.42;
 #endif // HD_437
 
 #ifdef HD_612
 const float MOTOR_RPM = 612.0;          // RPM at 12V
-const float MOTOR_GEAR_RATIO = 16.0;
 const float MOTOR_STALL_TORQUE = 16.0;  // kgf-cm
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = false;
@@ -42,7 +40,6 @@ const bool ENCODER_PHASE = false;
 #ifdef HD_1621
 const float MOTOR_RPM = 1621.0;         // RPM at 12V
 const float MOTOR_GEAR_RATIO = 5.18;
-const float MOTOR_STALL_TORQUE = 7.0;   // kgf-cm
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = true;
 #endif // HD_1621
@@ -52,20 +49,8 @@ const float MAX_MOTOR_RPM = (BATTERY_VOLTS / NOMINAL_VOLTS) * MOTOR_RPM;
 const float TICKS_PER_ROTATION = MOTOR_EVENTS * MOTOR_GEAR_RATIO;
 const float MAX_MOTOR_KPH =  (WHEEL_DIA_MM * M_PI * MAX_MOTOR_RPM * 60.0) / 1000000.0;
 const float USEC_TO_KPH = (3600.0 * WHEEL_DIA_MM * M_PI) / TICKS_PER_ROTATION;
-const float KPH_TO_PW = 255.5 / MAX_MOTOR_KPH;
+const float KPH_TO_PW = 255.0 / MAX_MOTOR_KPH;
 const float TICKS_PER_METER = (1000.0 / (M_PI * WHEEL_DIA_MM)) * TICKS_PER_ROTATION;
-
-
-// Wheel constants
-// wheel and motor constants
-//const float GYRO_WEIGHT = 0.997;
-
-//const float TICKS_PER_ROTATION = 921.6;  // 437 RPM motor
-//const float TICKS_PER_ROTATION = 659.0;  // 612 RPM motor
-//const float TICKS_PER_ROTATION = 145.0;    // 1150 RPM Yellow Jacket motor
-//const float USEC_TO_KPH = (3600 * WHEEL_DIA_MM * M_PI) / TICKS_PER_ROTATION;
-//const float KPH_TO_PW = 8.1;  // 612 RPM motor
-//const float KPH_TO_PW = 12.4;  // 437 RPM motor
 
 /*****************************************************************************-
  *  Pin definitions
@@ -113,7 +98,7 @@ boolean isLogStrWrap = false;
 String logHeader = "No Header";
 
 // Motor varialbles
-const float MOTOR_GAIN = K0 / (MOTOR_STALL_TORQUE * 0.11); // adjust gain by motor torque
+const float MOTOR_GAIN = K0 * K0_MULT; // adjust gain by motor torque
 volatile long tickPositionRight = 0;
 volatile long tickPositionLeft = 0;
 volatile unsigned long tickTimeRight = 0;
@@ -141,7 +126,6 @@ float coKph = 0.0;
 float balanceTargetKph = 0.0;
 float balanceSteerAdjustment = 0.0;
 float targetWKph = 0.0;
-
 unsigned long timeMilliseconds = 0UL;
 unsigned long timeMicroseconds = 0UL;
 bool isRunning = false;
@@ -149,27 +133,19 @@ bool isBowlBalancing = false;
 bool isAir = false;
 bool isUpright = false;
 bool isZeroG = false;
-
+float zeroGKph = 0.0;
 long tickPosition = 0L;
 double tickMeters = 0.0;
 double coTickPosition = 0.0;
 
-
-volatile int writeCount = 0;
-
 // RC variables
 volatile float controllerX = 0.0;   // ch1 steering
-volatile float controllerY = 0.0;   // ch2 accelerator
+float controllerY = 0.0;   // ch2 accelerator, limited rate
 volatile boolean ch3State = false;  // ch3 toggle
 volatile int ch4State = 0;          // ch4 3-position switch
 volatile float ch5Val = 0.0;        // ch5 top left potentiometer
 volatile int ch5State = 0;          // ch5 states 1-5
 volatile float ch6Val = 0.0;        // ch6 top right potentiometer.
-
-#define DBUFF_SIZE 10000
-int dBuffPtr = 0;
-boolean isDBuffFull = false;
-String dBuff[DBUFF_SIZE];
 
 // Nav public variables
 struct loc {
@@ -181,7 +157,6 @@ struct loc targetLoc;
 struct loc pivotLoc;
 struct loc hugStartLoc;
 struct loc coSetLoc;
-float zeroGKph = 0.0;
 unsigned long timeRun = 0;
 unsigned long timeStart = 0;
 char routeCurrentAction = 0;
@@ -189,18 +164,9 @@ int routeStepPtr = 0;
 boolean isStartReceived = false;
 boolean isRouteInProgress = false;
 float routeKph = 0.0;
-String routeTitle = "";
 float turnRadius = 0.0;
-float bowlEndDistance = 0.0;
-float bowlArray[100];
-unsigned long bowlStartTime = 0UL;
-int bowlArraySize = 0;
-float bowlTargetPitch = 0.0;
-//int rampTicksRight = 0;
-//int rampTicksLeft = 0;
-float bowlCompleted = 0.0;
-boolean isLoadedRouteValid = true;
-String *currentRoute = go;
+//boolean isLoadedRouteValid = true;
+String *currentRoute = routeTable[0];
 float getupSpeed = 0.0;
 const float STEP_ERROR = -42.42;
 int originalStepStringPtr = 0;
