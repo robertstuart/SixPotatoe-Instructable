@@ -15,7 +15,7 @@
  *****************************************************************************/
 void routeControl() {
   boolean isNewRouteStep = false;
-  timeRun = timeMilliseconds - timeStart;
+//  timeRun = timeMilliseconds - timeStart;
 
   switch (routeCurrentAction) {  
 
@@ -236,7 +236,6 @@ void runRoute(int routeNum) {
   currentLoc.y = 0.0D;
   coSetLoc = currentLoc;
   timeStart = timeMilliseconds;
-  timeRun = 0;
 }
 
 

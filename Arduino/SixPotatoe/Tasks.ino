@@ -15,6 +15,7 @@ void commonTasks() {
   checkController();
   setRunningState();
   checkLogDump();
+  battery();
 }
 
 
@@ -65,10 +66,12 @@ void checkController() {
  * blinkLed()
  *****************************************************************************/
 void blinkLed() {
+  static unsigned int blinkCount;
   static unsigned long trigger = 0UL;
-  static unsigned int blinkCount = 0;
 
-  if (timeMilliseconds > trigger) {
+  if (isBatteryWarn) {
+    analogWrite(LED_STAT_PIN, ((blinkCount++ / 10) % 2) ? 255 : 0);
+  } else if (timeMilliseconds > trigger) {
     trigger = timeMilliseconds + 100;
     bool buState;
 
@@ -90,12 +93,16 @@ void blinkLed() {
         buState = false;
         break;
     }
-    analogWrite(LED_BU_PIN, buState ? K20 : 0);
+    analogWrite(LED_STAT_PIN, buState ? K20 : 0);
   }
 }
 void blinkTeensy() {  // Just blink the Teensy. Normally IMU heartbeat.
   static unsigned int blinkCount;
-  digitalWrite(LED_PIN, ((blinkCount++ / 50) % 2) ? HIGH : LOW);
+  if (isBatteryWarn) {
+    digitalWrite(LED_PIN, ((blinkCount++ / 10) % 2) ? HIGH : LOW);
+  } else {
+    digitalWrite(LED_PIN, ((blinkCount++ / 50) % 2) ? HIGH : LOW);
+  }
 }
 
 
@@ -180,7 +187,7 @@ void switches() {
   static boolean oldBuState = false;
 
   // Debounce blue switch 
-  boolean swState = digitalRead(SW_BU_PIN) == LOW;
+  boolean swState = digitalRead(SW_STAT_PIN) == LOW;
   if (swState) timerBu = timeMilliseconds;
   if ((timeMilliseconds - timerBu) > 50) buState = false;
   else buState = true;
@@ -188,6 +195,41 @@ void switches() {
     isRunning = !isRunning;
   }
   oldBuState = buState;
+}
+
+
+
+/*****************************************************************************-
+ * battery()
+ *****************************************************************************/
+void battery() {
+  static const int VOLT_ARRAY_SIZE = 50;  // 50 seconds of measurements
+  static bool isInit = false;
+  static unsigned long batteryTrigger = 0UL;
+  static float voltArray[VOLT_ARRAY_SIZE];
+  static int voltArrayPtr = 0;
+  if (timeMilliseconds > batteryTrigger) {
+    batteryTrigger = timeMilliseconds + 1000;  // 1 per second
+    if (!isInit) {
+      isInit = true;
+      for (int i = 0; i < VOLT_ARRAY_SIZE; i++) voltArray[i] = 25.0;
+    }
+    float battVolt = ((float) analogRead(BATTERY_PIN)) * .02603;
+//    Serial.println(battVolt);
+    if (battVolt < 5.0) { // running off of USB power?
+      isBatteryCritical = isBatteryWarn = false;
+    } else {
+      voltArray[voltArrayPtr++] = battVolt;
+      voltArrayPtr = voltArrayPtr % VOLT_ARRAY_SIZE;
+      float max = 0.0;
+      for (int i = 0; i < VOLT_ARRAY_SIZE; i++) {
+        float v = voltArray[i];
+        if (v > max) max = v;
+      }
+      if (max < 18.0) isBatteryCritical = true;
+      if (max < 19.0) isBatteryWarn = true;
+    }
+  }
 }
 
 
@@ -278,7 +320,8 @@ void ch2Isr() {
     riseTime = t;
   } else  {
     int ch2pw = t - riseTime;
-    controllerY = ( 2.0 * ((float) (ch2pw - RC_MID))) / RC_RANGE;
+    if (isBatteryWarn) controllerY = 0.0;
+    else controllerY = ( 2.0 * ((float) (ch2pw - RC_MID))) / RC_RANGE;
   }
 }
 void ch3Isr() {

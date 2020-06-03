@@ -209,7 +209,8 @@ void runMotorLeft() {
  * setMotor????() Set pw and diriction. pw between 0-255
  ******************************************************************************/
 void setMotorRight(int pw, bool isFwd) {
-  if (!isRunning) pw = 0;
+  if (isBatteryCritical) pw = 0;
+  else if (!isRunning) pw = 0;
   else if (pw > 255) pw = 255;
   else if (pw < 0) pw = 0;
   digitalWrite(DIR_RIGHT_PIN, (isFwd) ? LOW : HIGH);
@@ -218,7 +219,8 @@ void setMotorRight(int pw, bool isFwd) {
 }
 
 void setMotorLeft(int pw, bool isFwd) {
-  if (!isRunning) pw = 0;
+  if (isBatteryCritical) pw = 0;
+  else if (!isRunning) pw = 0;
   else if (pw > 255) pw = 255;
   else if (pw < 0) pw = 0;
   digitalWrite(DIR_LEFT_PIN, (isFwd) ? HIGH : LOW);

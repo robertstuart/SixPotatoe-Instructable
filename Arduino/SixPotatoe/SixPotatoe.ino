@@ -42,6 +42,7 @@ const float MOTOR_RPM = 1621.0;         // RPM at 12V
 const float MOTOR_GEAR_RATIO = 5.18;
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = true;
+const float K0_MULT = 0.9;
 #endif // HD_1621
 
 
@@ -58,7 +59,7 @@ const float TICKS_PER_METER = (1000.0 / (M_PI * WHEEL_DIA_MM)) * TICKS_PER_ROTAT
 const int PWM_LEFT_PIN    = 14;
 const int PWM_RIGHT_PIN   = 15;
 const int DIR_LEFT_PIN    = 16;
-const int DIR_RIGHT_PIN   = 17;
+const int DIR_RIGHT_PIN   =  9;
 
 const int ENC_B_LEFT_PIN  = 20;
 const int ENC_A_LEFT_PIN  = 21;
@@ -73,9 +74,9 @@ const int CH5_RADIO_PIN   =  3;
 const int CH6_RADIO_PIN   =  2;
 
 const int LED_PIN         = 13;
-const int LED_BU_PIN      = 12;
-const int SW_BU_PIN       = 11;
-const int WATCHDOG_PIN    =  8;
+const int LED_STAT_PIN    = 12;
+const int SW_STAT_PIN     = 11;
+const int BATTERY_PIN     = 17;
 
 enum BlinkState {
   BLINK_OFF,        //  motors off, no route
@@ -133,6 +134,8 @@ bool isBowlBalancing = false;
 bool isAir = false;
 bool isUpright = false;
 bool isZeroG = false;
+bool isBatteryWarn = false;
+bool isBatteryCritical = false;
 float zeroGKph = 0.0;
 long tickPosition = 0L;
 double tickMeters = 0.0;
@@ -165,7 +168,6 @@ boolean isStartReceived = false;
 boolean isRouteInProgress = false;
 float routeKph = 0.0;
 float turnRadius = 0.0;
-//boolean isLoadedRouteValid = true;
 String *currentRoute = routeTable[0];
 float getupSpeed = 0.0;
 const float STEP_ERROR = -42.42;
@@ -183,13 +185,6 @@ double stepDistance = 0.0D;
 double currentDistance = 0.0D;
 double startOrientation = 0.0;
 struct loc startLoc;
-bool isGettingUp = false;
-int getUpTime = 0;
-unsigned long getUpEndTime = 0UL;
-float getUpSpeed = 0.0;
-float bowlWKph = 0.0;
-float airWKph = 0.0;
-unsigned long airStartTime = 0UL;
 
 IMU imu;
 
@@ -202,13 +197,12 @@ void setup() {
  
   // Motor pins are initialized in motorInit()
   pinMode(LED_PIN, OUTPUT);
-  pinMode(LED_BU_PIN, OUTPUT);
-  pinMode(WATCHDOG_PIN, OUTPUT);
-  pinMode(SW_BU_PIN, INPUT_PULLUP);
+  pinMode(LED_STAT_PIN, OUTPUT);
+  pinMode(SW_STAT_PIN, INPUT_PULLUP);
+  pinMode(BATTERY_PIN, INPUT);
     
   digitalWrite(LED_PIN, HIGH);
-  digitalWrite(WATCHDOG_PIN, LOW);
-  digitalWrite(LED_BU_PIN, LOW);
+  digitalWrite(LED_STAT_PIN, LOW);
 
   rcInit(); 
   imu.imuInit(Wire, 1);

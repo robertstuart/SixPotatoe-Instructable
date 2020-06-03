@@ -23,7 +23,6 @@ void run() {
     runMotors();
     blinkTeensy();
     updateCartesian();
-    watchdog();
     postLog();
   }
 }
@@ -134,17 +133,6 @@ void setCoKph() {
     cosBuffPtr = cosBuffPtr % COS_BUF_SIZE; 
     cosBuff[cosBuffPtr] = coKph;
   }
-}
-
-
-
-/*****************************************************************************-
- *  watchdog() Just toggle to keep watchdog timer alive
- *****************************************************************************/
-void watchdog() {
-  static bool toggle = false;
-  toggle = !toggle;
-  digitalWrite(WATCHDOG_PIN, toggle ? LOW : HIGH);
 }
 
 
