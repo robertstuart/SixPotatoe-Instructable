@@ -142,7 +142,7 @@ void setCoKph() {
  *****************************************************************************/
 void postLog() {
   static unsigned int logLoop = 0;
-  const int MOD = 4;  // 1 = every loop, 2 = every other loop, mod3 = every 3rd loop, etc.
+  const int MOD = 20;  // 1 = every loop, 2 = every other loop, mod3 = every 3rd loop, etc.
   logLoop++;
   if ((logLoop % MOD) == 0) { 
     if (isRunning && isRouteInProgress) {

@@ -5,9 +5,11 @@
  *    a number of "K" constants that can be adjusted to tune various aspects
  *    of SixPotatoe's performance.  
  *****************************************************************************/
+#ifndef _DEFS_H_
+#define _DEFS_H_
 
 // The motor is defined here.  Uncomment the line for the motor you are using.
-//#define YELLOW_435   
+#define YELLOW_435   
 //#define YELLOW_1150   
 //#define HD_437
 //#define HD_612
@@ -38,6 +40,7 @@ const float K21 = 0.95;     // TC for accelCoKph
 const float K30 = 0.7;      // proportion of MAX_MOTOR_KPH for max kph
 const float K31 = 5.0;      // Maximum speed for Kph on ground.
 const float K32 = 2.0;      // Maximum steering on ground.
+const float K40 = 1.035;      // gyro correction
 
 
 // One of the following are set to "true" for initial testing.
@@ -45,3 +48,6 @@ const bool IS_TEST1 = false;  // Set to be true for the 1st system test.
 const bool IS_TEST2 = false;  // Set to be true for the 2nd system test.
 const bool IS_TEST3 = false;  // Set to be true for the 3nd system test.
 const bool IS_TEST4 = false;  // Set to be true for the 4th system test.
+const bool IS_TEST5 = false;  // Set to be true for the 4th system test.
+
+#endif  // _DEFS_H_

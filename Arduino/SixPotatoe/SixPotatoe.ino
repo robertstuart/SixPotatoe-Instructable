@@ -9,9 +9,9 @@
 #ifdef YELLOW_435
 const float MOTOR_RPM = 435.0;        // RPM at 12V
 const float MOTOR_GEAR_RATIO = 13.7;
-const float MOTOR_STALL_TORQUE = 18.7;
 const float MOTOR_EVENTS = 28.0;       // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = true;
+const bool ENCODER_PHASE = false;
+const float K0_MULT = 0.42;
 #endif // YELLOW_435
 
 #ifdef YELLOW_1150
@@ -161,7 +161,6 @@ struct loc pivotLoc;
 struct loc hugStartLoc;
 struct loc coSetLoc;
 unsigned long timeRun = 0;
-unsigned long timeStart = 0;
 char routeCurrentAction = 0;
 int routeStepPtr = 0;
 boolean isStartReceived = false;
@@ -220,6 +219,7 @@ void loop() {
   else if (IS_TEST2)  systemTest2();
   else if (IS_TEST3)  systemTest3();
   else if (IS_TEST4)  systemTest4();
+  else if (IS_TEST5)  systemTest5();
   else run();
 }
 
@@ -284,6 +284,22 @@ void systemTest4() {
       targetWKphLeft = y - x;
       runMotors();
       Serial.printf("%7.2f %7.2f %7.2f %7.2f %5d\n", wKphRight, wKphLeft, x, y, isRunning);
+      blinkTeensy();
+    }
+  }
+}
+void systemTest5() { // encoder balancing
+  while (true) {
+    commonTasks();
+    if (imu.isNewImuData()) {
+      int r = 50;
+      int l = 0;
+      setMotorRight(abs(r), r > 0);
+      setMotorLeft(abs(l), l > 0);
+      readSpeedRight();
+      readSpeedLeft();
+//      Serial.println(ch4State);
+//      Serial.printf("%7.2f %7.2f %5d %5d %5d\n", wKphRight, wKphLeft, r, l, isRunning);
       blinkTeensy();
     }
   }

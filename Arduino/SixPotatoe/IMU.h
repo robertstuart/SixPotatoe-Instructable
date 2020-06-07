@@ -2,6 +2,7 @@
 #define _IMU_H_
 
 #include "ICM_20948.h"
+#include "defs.h"
 
 const float GYRO_WEIGHT = 0.997;
 

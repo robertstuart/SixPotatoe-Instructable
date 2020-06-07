@@ -209,6 +209,10 @@ boolean IMU::isNewImuData() {
     gyroPitchDelta -= timeDriftPitch;
     gyroRollDelta -= timeDriftRoll;
     gyroYawDelta -= timeDriftYaw;
+    gyroPitchDelta *= K40;
+    gyroRollDelta *= K40;
+    gyroYawDelta *= K40;
+    
     float gyroXrad = gyroPitchDelta * DEG_TO_RAD;                  // radians/sec
     float gyroYrad = gyroRollDelta * DEG_TO_RAD;                  // radians/sec
     float gyroZrad = gyroYawDelta * DEG_TO_RAD;                  // radians/sec

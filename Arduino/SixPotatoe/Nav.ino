@@ -15,8 +15,7 @@
  *****************************************************************************/
 void routeControl() {
   boolean isNewRouteStep = false;
-//  timeRun = timeMilliseconds - timeStart;
-
+  
   switch (routeCurrentAction) {  
 
     case 'F':  // Fini
@@ -32,8 +31,6 @@ void routeControl() {
       if (isRunning) {
         setHeading(rangeAngle(startOrientation));
         currentLoc = startLoc;
-        timeStart = timeMilliseconds;
-        routeKph = 0.0;
         isNewRouteStep = true; // Wait for isRunning.
       }
       break;
@@ -63,6 +60,7 @@ void routeControl() {
  *      Read the new route step and set the values.
  *****************************************************************************/
 boolean interpretRouteLine(String ss) {
+  float floatVal = 0.0;
   stepString = ss;
   originalStepStringPtr = 0;
   Serial.print(stepString);  Serial.print(":   ");
@@ -81,9 +79,9 @@ boolean interpretRouteLine(String ss) {
       targetLoc = readLoc();
       Serial.printf("%.2f,%.2f  ", targetLoc.x, targetLoc.y);
       if (targetLoc.y == STEP_ERROR) return false;
-      routeKph =  readNum();
-      Serial.printf("%.2f  ", routeKph);
-      if (routeKph == STEP_ERROR) return false;
+      floatVal =  readNum();
+      Serial.printf("%.2f  ", floatVal);
+      if (floatVal != STEP_ERROR) routeKph = floatVal;
       setTarget();
       stepDistance = targetDistance;
       currentDistance = 0.0;
@@ -96,7 +94,11 @@ boolean interpretRouteLine(String ss) {
       startOrientation = readNum();
       Serial.printf("%.2f  ", startOrientation);
       if ((startOrientation < -180.0D) || (startOrientation > 180.0)) return false;
-      break;
+      floatVal = readNum();
+      Serial.printf("%.2f  ", floatVal);
+      if (floatVal != STEP_ERROR) routeKph = floatVal;
+      else routeKph = 0.0;
+   break;
       
     case 'T':  // Turn at radius ending at waypoint.
       stepRotation = readNum();
@@ -105,9 +107,9 @@ boolean interpretRouteLine(String ss) {
       turnRadius = readNum();
       Serial.printf("%.2f  ", turnRadius);
       if (turnRadius == STEP_ERROR) return false;
-      routeKph = readNum();
-      Serial.printf("%.2f  ", routeKph);
-      if (routeKph == STEP_ERROR) return false;
+      floatVal = readNum();
+      Serial.printf("%.2f  ", floatVal);
+      if (floatVal != STEP_ERROR) routeKph = floatVal;
       currentRotation = 0.0;
       startTurnBearing = imu.gHeading;
       break;
@@ -235,7 +237,6 @@ void runRoute(int routeNum) {
   currentLoc.x = 0.0D;
   currentLoc.y = 0.0D;
   coSetLoc = currentLoc;
-  timeStart = timeMilliseconds;
 }
 
 

@@ -182,7 +182,7 @@ void runMotorRight() {
   readSpeedRight();
   
   float wsError = (float) (targetWKphRight - wKphRight);
-  if (abs(targetWKphRight) < 1.0) {  // reduce gain below .5 kph
+  if (abs(targetWKphRight) < 1.0) {  // reduce gain below 1 kph
     g = (abs(targetWKphRight) * g);
   }
   motorTargetKphRight = targetWKphRight + (wsError * g);  // Target speed to correct error
@@ -195,7 +195,7 @@ void runMotorLeft() {
   readSpeedLeft();
 
   float wsError = (float) (targetWKphLeft - wKphLeft);
-  if (abs(targetWKphLeft) < 1.0) {  // reduce gain below .5 kph
+  if (abs(targetWKphLeft) < 1.0) {  // reduce gain below 1 kph
     g = (abs(targetWKphLeft) * g);
   }
   motorTargetKphLeft = targetWKphLeft + (wsError * g);  // Target speed to correct error
