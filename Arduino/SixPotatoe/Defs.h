@@ -10,7 +10,7 @@
 
 // The motor is defined here.  Uncomment the line for the motor you are using.
 //#define YELLOW_435   
-#define YELLOW_1150   
+//#define YELLOW_1150   
 //#define HD_437
 //#define HD_612
 //#define HD_1621

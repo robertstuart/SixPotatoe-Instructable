@@ -90,7 +90,7 @@ void balance() {
 
   // Compute angle error and weight factor
   float angleError = targetPitch - imu.maPitch;
-  angleError = constrain(angleError, -K13, K13); // prevent "jumping"
+  angleError = constrain(angleError, -K13_RESULT, K13_RESULT); // prevent "jumping"
   float kphCorrection = angleError * K14_RESULT; // Angle error to speed (Kph) 
   float d = imu.gyroPitchDelta *  K17; // add "D" to reduce overshoot
 

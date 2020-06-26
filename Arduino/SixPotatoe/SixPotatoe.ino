@@ -13,6 +13,7 @@ const float MOTOR_EVENTS = 28.0;       // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = false;
 const float K0_MULT = 0.42;
 const float K5_MULT = 1.5;
+const float K13_MULT = 1.0;
 const float K14_MULT = 1.0;
 #endif // YELLOW_435
 
@@ -24,6 +25,7 @@ const float MOTOR_EVENTS = 28.0;        // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = false;
 const float K0_MULT = 0.9;
 const float K5_MULT = 0.8;
+const float K13_MULT = 1.0;
 const float K14_MULT = 1.0;
 #endif // YELLOW_1150
 
@@ -34,6 +36,7 @@ const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = true;
 const float K0_MULT = 0.42;
 const float K5_MULT = 1.5;
+const float K13_MULT = 1.0;
 const float K14_MULT = 1.0;
 #endif // HD_437
 
@@ -43,9 +46,10 @@ const float MOTOR_GEAR_RATIO = 13.7;
 const float MOTOR_STALL_TORQUE = 16.0;  // kgf-cm
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = true;
-const float K0_MULT = 0.4;
-const float K5_MULT = 1.6;
-const float K14_MULT = 0.8;
+const float K0_MULT = 0.30;
+const float K5_MULT = 2.5;
+const float K13_MULT = 1.6;
+const float K14_MULT = 0.7;
 //const float K0_MULT = 0.3;             // Motor Gain
 //const float K5_MULT = 0.8;              // Angle Gain
 //const float K14_MULT = 1.0;             // Error Gain
@@ -109,6 +113,7 @@ String logHeader = "No Header";
 const float K0_RESULT = K0 * K0_MULT; // adjust gain by motor torque
 const float K5_RESULT = K5 * K5_MULT;
 const float K14_RESULT = K14 * K14_MULT;  // Error gain.
+const float K13_RESULT = K13 * K13_MULT;
 volatile long tickPositionRight = 0;
 volatile long tickPositionLeft = 0;
 volatile unsigned long tickTimeRight = 0;
