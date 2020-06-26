@@ -12,38 +12,45 @@ const float MOTOR_GEAR_RATIO = 13.7;
 const float MOTOR_EVENTS = 28.0;       // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = false;
 const float K0_MULT = 0.42;
+const float K5_MULT = 1.5;
+const float K14_MULT = 1.0;
 #endif // YELLOW_435
 
 #ifdef YELLOW_1150
+// Tested good on street 20-Jun-20
 const float MOTOR_RPM = 1150.0;         // RPM at 12V
 const float MOTOR_GEAR_RATIO = 5.2;
 const float MOTOR_EVENTS = 28.0;        // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = true;
+const bool ENCODER_PHASE = false;
 const float K0_MULT = 0.9;
+const float K5_MULT = 0.8;
+const float K14_MULT = 1.0;
 #endif // YELLOW_1150
 
 #ifdef HD_437
 const float MOTOR_RPM = 437.0;          // RPM at 12V
 const float MOTOR_GEAR_RATIO = 19.2;
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = false;
+const bool ENCODER_PHASE = true;
 const float K0_MULT = 0.42;
+const float K5_MULT = 1.5;
+const float K14_MULT = 1.0;
 #endif // HD_437
 
 #ifdef HD_612
 const float MOTOR_RPM = 612.0;          // RPM at 12V
+const float MOTOR_GEAR_RATIO = 13.7;
 const float MOTOR_STALL_TORQUE = 16.0;  // kgf-cm
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = false;
+const bool ENCODER_PHASE = true;
+const float K0_MULT = 0.4;
+const float K5_MULT = 1.6;
+const float K14_MULT = 0.8;
+//const float K0_MULT = 0.3;             // Motor Gain
+//const float K5_MULT = 0.8;              // Angle Gain
+//const float K14_MULT = 1.0;             // Error Gain
 #endif // HD_612
 
-#ifdef HD_1621
-const float MOTOR_RPM = 1621.0;         // RPM at 12V
-const float MOTOR_GEAR_RATIO = 5.18;
-const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = true;
-const float K0_MULT = 0.9;
-#endif // HD_1621
 
 
 const float MAX_MOTOR_RPM = (BATTERY_VOLTS / NOMINAL_VOLTS) * MOTOR_RPM;
@@ -99,15 +106,17 @@ boolean isLogStrWrap = false;
 String logHeader = "No Header";
 
 // Motor varialbles
-const float MOTOR_GAIN = K0 * K0_MULT; // adjust gain by motor torque
+const float K0_RESULT = K0 * K0_MULT; // adjust gain by motor torque
+const float K5_RESULT = K5 * K5_MULT;
+const float K14_RESULT = K14 * K14_MULT;  // Error gain.
 volatile long tickPositionRight = 0;
 volatile long tickPositionLeft = 0;
 volatile unsigned long tickTimeRight = 0;
 volatile unsigned long tickTimeLeft = 0;
 volatile int tickSumRight = 0;
 volatile int tickSumLeft = 0;
-volatile int tickCountRight = 0;
-volatile int tickCountLeft = 0;
+//volatile int tickCountRight = 0;
+//volatile int tickCountLeft = 0;
 volatile int interruptErrorsRight = 0;
 volatile int interruptErrorsLeft = 0;
 volatile int changeDirRight = 0;
@@ -219,7 +228,6 @@ void loop() {
   else if (IS_TEST2)  systemTest2();
   else if (IS_TEST3)  systemTest3();
   else if (IS_TEST4)  systemTest4();
-  else if (IS_TEST5)  systemTest5();
   else run();
 }
 
@@ -284,22 +292,6 @@ void systemTest4() {
       targetWKphLeft = y - x;
       runMotors();
       Serial.printf("%7.2f %7.2f %7.2f %7.2f %5d\n", wKphRight, wKphLeft, x, y, isRunning);
-      blinkTeensy();
-    }
-  }
-}
-void systemTest5() { // encoder balancing
-  while (true) {
-    commonTasks();
-    if (imu.isNewImuData()) {
-      int r = 50;
-      int l = 0;
-      setMotorRight(abs(r), r > 0);
-      setMotorLeft(abs(l), l > 0);
-      readSpeedRight();
-      readSpeedLeft();
-//      Serial.println(ch4State);
-//      Serial.printf("%7.2f %7.2f %5d %5d %5d\n", wKphRight, wKphLeft, r, l, isRunning);
       blinkTeensy();
     }
   }

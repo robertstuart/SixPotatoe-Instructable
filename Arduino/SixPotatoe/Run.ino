@@ -1,10 +1,10 @@
 /*****************************************************************************-
  *                           Run.ino 
  *****************************************************************************/
-float kphCorrection = 0.0f;
-float angleError = 0.0;
-float targetPitch = 0.0;
-float kphAdjustment = 0.0;
+//float kphCorrection = 0.0f;
+//float angleError = 0.0;
+//float targetPitch = 0.0;
+//float kphAdjustment = 0.0;
 
 
 /*****************************************************************************-
@@ -72,20 +72,26 @@ void rcControl() {
  *  balance() 
  *****************************************************************************/
 void balance() {
+  static float coKphError = 0.0;
   
-  // Find the speed error.
-  float coKphError = balanceTargetKph - coKph;
+  // Find the speed error while limiting the rate of change of this error.
+//  if (!isRunning) coKphError = 0.0;
+//  float diff = balanceTargetKph - coKph;
+//  if      (diff > K4)  coKphError += K4;
+//  else if (diff < -K4) coKphError -= K4;
+//  else                 coKphError = diff;
+  coKphError = balanceTargetKph - coKph;
 
   // compute a weighted angle to eventually correct the speed error
-  targetPitch = -(coKphError * K5); // Speed error to angle 
+  float targetPitch = -(coKphError * K5_RESULT); // Angle Gain. Speed error to angle 
   
-  // Compute maximum angles for the current wheel speed and enforce limits.
+  // Enforce limits on maximum angle.
   targetPitch = constrain(targetPitch, -K12, K12);
 
   // Compute angle error and weight factor
-  angleError = targetPitch - imu.maPitch;
+  float angleError = targetPitch - imu.maPitch;
   angleError = constrain(angleError, -K13, K13); // prevent "jumping"
-  kphCorrection = angleError * K14; // Angle error to speed (Kph) 
+  float kphCorrection = angleError * K14_RESULT; // Angle error to speed (Kph) 
   float d = imu.gyroPitchDelta *  K17; // add "D" to reduce overshoot
 
   // Reduce D to zero at K15
