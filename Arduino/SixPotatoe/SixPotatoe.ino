@@ -6,7 +6,15 @@
 #include "Routes.h"
 #include "Defs.h"
 
+enum motorType {
+  yellow435,
+  hd437,
+  hd612,
+  yellow1150
+};
+
 #ifdef YELLOW_435
+const enum motorType MOTOR_TYPE = yellow435;
 const float MOTOR_RPM = 435.0;        // RPM at 12V
 const float MOTOR_GEAR_RATIO = 13.7;
 const float MOTOR_EVENTS = 28.0;       // Encoder ticks per motor revolution
@@ -17,19 +25,8 @@ const float K13_MULT = 1.0;
 const float K14_MULT = 1.0;
 #endif // YELLOW_435
 
-#ifdef YELLOW_1150
-// Tested good on street 20-Jun-20
-const float MOTOR_RPM = 1150.0;         // RPM at 12V
-const float MOTOR_GEAR_RATIO = 5.2;
-const float MOTOR_EVENTS = 28.0;        // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = false;
-const float K0_MULT = 0.9;
-const float K5_MULT = 0.8;
-const float K13_MULT = 1.0;
-const float K14_MULT = 1.0;
-#endif // YELLOW_1150
-
 #ifdef HD_437
+const enum motorType MOTOR_TYPE = hd437;
 const float MOTOR_RPM = 437.0;          // RPM at 12V
 const float MOTOR_GEAR_RATIO = 19.2;
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
@@ -41,21 +38,29 @@ const float K14_MULT = 1.0;
 #endif // HD_437
 
 #ifdef HD_612
+const enum motorType MOTOR_TYPE = hd612;
 const float MOTOR_RPM = 612.0;          // RPM at 12V
 const float MOTOR_GEAR_RATIO = 13.7;
-const float MOTOR_STALL_TORQUE = 16.0;  // kgf-cm
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
 const bool ENCODER_PHASE = true;
-const float K0_MULT = 0.30;
-const float K5_MULT = 2.5;
-const float K13_MULT = 1.6;
-const float K14_MULT = 0.7;
-//const float K0_MULT = 0.3;             // Motor Gain
-//const float K5_MULT = 0.8;              // Angle Gain
-//const float K14_MULT = 1.0;             // Error Gain
+const float K0_MULT = 0.30;            // Motor gain
+const float K5_MULT = 4.0l;             // Speed error to angle
+const float K13_MULT = 2.0;            // Constrain pitch error
+const float K14_MULT = 0.5;            // Angle error gain
 #endif // HD_612
 
-
+#ifdef YELLOW_1150
+// Tested good on street 20-Jun-20
+const enum motorType MOTOR_TYPE = yellow1150;
+const float MOTOR_RPM = 1150.0;         // RPM at 12V
+const float MOTOR_GEAR_RATIO = 5.2;
+const float MOTOR_EVENTS = 28.0;        // Encoder ticks per motor revolution
+const bool ENCODER_PHASE = false;
+const float K0_MULT = 0.9;              // Motor gain
+const float K5_MULT = 0.8;              // Speed error to angle
+const float K13_MULT = 1.0;             // Constrain pitch error
+const float K14_MULT = 1.0;             // Angle error gain
+#endif // YELLOW_1150
 
 const float MAX_MOTOR_RPM = (BATTERY_VOLTS / NOMINAL_VOLTS) * MOTOR_RPM;
 const float TICKS_PER_ROTATION = MOTOR_EVENTS * MOTOR_GEAR_RATIO;
@@ -99,15 +104,19 @@ enum BlinkState {
 
 BlinkState currentBlink = BLINK_OFF;
 
-#define N_FLOAT_LOGS 15000  // 15k near max before running out of memory
-#define N_STR_LOGS 100  // 15k near max before running out of memory
-float logFloats[4][N_FLOAT_LOGS];
-String logStrs[N_STR_LOGS];
+#define N_FLOAT_LOGS 1  // max before running out of memory
+//#define N_FLOAT_LOGS 7000  // max before running out of memory
+float logFloats[8][N_FLOAT_LOGS];
 int logFloatCount = 0;
 boolean isLogFloatWrap = false;
-int logStrCount = 0;
-boolean isLogStrWrap = false;
 String logHeader = "No Header";
+#define N_TICK_LOGS 20000 // 40,000 near limit
+unsigned long tickLogRight[N_TICK_LOGS];
+byte intLogRight[N_TICK_LOGS];
+int tcRight = 0;
+unsigned long tickLogLeft[N_TICK_LOGS];
+byte intLogLeft[N_TICK_LOGS];
+int tcLeft = 0;
 
 // Motor varialbles
 const float K0_RESULT = K0 * K0_MULT; // adjust gain by motor torque
@@ -172,7 +181,7 @@ struct loc {
 struct loc currentLoc;
 struct loc targetLoc;
 struct loc pivotLoc;
-struct loc hugStartLoc;
+//struct loc hugStartLoc;
 struct loc coSetLoc;
 unsigned long timeRun = 0;
 char routeCurrentAction = 0;
@@ -198,6 +207,15 @@ double stepDistance = 0.0D;
 double currentDistance = 0.0D;
 double startOrientation = 0.0;
 struct loc startLoc;
+unsigned long getUpStartTime = 0;
+bool isGetUpPhase1 = true;
+bool isGetUpBack = false;
+unsigned long getUpPhase1Ms = 0;
+unsigned long getUpPhase2Ms = 0;
+float getUpPhase1Kph = 0.0;
+float getUpPhase2Kph = 0.0;
+bool isCountdown = false;
+unsigned long countdownTrigger = 0UL;
 
 IMU imu;
 

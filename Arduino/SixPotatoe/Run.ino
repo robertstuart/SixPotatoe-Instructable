@@ -13,6 +13,7 @@
 void run() {
   commonTasks();
   if (imu.isNewImuData()) {
+//unsigned long t = micros();
       
     if (isRouteInProgress) routeControl(); 
     else rcControl();
@@ -24,6 +25,13 @@ void run() {
     blinkTeensy();
     updateCartesian();
     postLog();
+    if (isCountdown) {
+      if (countdownTrigger < timeMilliseconds) {
+        isRunning = false;
+        isCountdown = false;
+      }
+    }
+//Serial.println(micros() - t);    
   }
 }
 
@@ -73,14 +81,15 @@ void rcControl() {
  *****************************************************************************/
 void balance() {
   static float coKphError = 0.0;
-  
-  // Find the speed error while limiting the rate of change of this error.
-//  if (!isRunning) coKphError = 0.0;
-//  float diff = balanceTargetKph - coKph;
-//  if      (diff > K4)  coKphError += K4;
-//  else if (diff < -K4) coKphError -= K4;
-//  else                 coKphError = diff;
-  coKphError = balanceTargetKph - coKph;
+  static float tKph = 0.0;
+
+  // Limit rate of change of target speed
+  float diff = balanceTargetKph - tKph;
+  if (!isRunning) tKph = 0.0;
+  else if (diff > K4)  tKph += K4;
+  else if (diff < -K4) tKph -= K4;
+  else                 tKph = balanceTargetKph;
+  coKphError = tKph - coKph;
 
   // compute a weighted angle to eventually correct the speed error
   float targetPitch = -(coKphError * K5_RESULT); // Angle Gain. Speed error to angle 
@@ -91,19 +100,22 @@ void balance() {
   // Compute angle error and weight factor
   float angleError = targetPitch - imu.maPitch;
   angleError = constrain(angleError, -K13_RESULT, K13_RESULT); // prevent "jumping"
-  float kphCorrection = angleError * K14_RESULT; // Angle error to speed (Kph) 
-  float d = imu.gyroPitchDelta *  K17; // add "D" to reduce overshoot
+  float kphCorrectionA = angleError * K14_RESULT; // Angle error to speed (Kph) 
 
   // Reduce D to zero at K15
+  float d = imu.gyroPitchDelta *  K17; // add "D" to reduce overshoot
   float ratio = (K15 - abs(imu.maPitch)) / K15;
   ratio = constrain(ratio, 0.0, 1.0);
-  kphCorrection -= (d * ratio);
+  float kphCorrectionB = kphCorrectionA - (d * ratio);
 
   // Add the angle error to the base speed to get the target wheel speed.
-  targetWKph = kphCorrection + coKph;
+  targetWKph = kphCorrectionB + coKph;
 
   targetWKphRight = targetWKph - balanceSteerAdjustment;
   targetWKphLeft = targetWKph + balanceSteerAdjustment;
+if (isRunning) {
+  addLog(imu.maPitch, imu.vertAccel, wKph, targetPitch, angleError, kphCorrectionA, kphCorrectionB, targetWKph );
+} 
 } // end balance() 
 
 

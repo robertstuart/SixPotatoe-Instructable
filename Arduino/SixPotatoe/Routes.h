@@ -2,7 +2,11 @@
  *                        Routes.h
  *****************************************************************************/
 
-
+String GetUp[] = {
+  "P    0,0     0       ",
+  "U",
+  "F"
+};
 String LittleP[] = { 
   "P     0,0    0       ",
   "G     0,1         3  ",
@@ -64,8 +68,8 @@ String Dance[] = {
 };
 String BigOutNBack1[] = { 
   "P      0,0    0      ",
-//  "G     0,1         6  ",
-  "G     0,40       6  ",
+  "G     0,1         6  ",
+  "G     0,40       12  ",
   "T    180   2         ",
   "T     90   2         ",
   "T    -90   1.7       ",
@@ -90,6 +94,7 @@ String BigOutNBack2[] = {
 
 // 5 routes: 1, 2, 3, 4, & 5;
 String* routeTable[] = {
+  GetUp,
   LittleP,
   Fat8,
   LittleSquare,

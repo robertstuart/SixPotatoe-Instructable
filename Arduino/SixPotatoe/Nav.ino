@@ -40,6 +40,10 @@ void routeControl() {
       else turn();
       break;
 
+    case 'U':  // Get up
+      if (getUp()) isNewRouteStep = true;
+      break;
+
     default:
       isRouteInProgress = false;
       Serial.printf("Illegal step: %d\n", routeStepPtr);
@@ -114,6 +118,11 @@ boolean interpretRouteLine(String ss) {
       startTurnBearing = imu.gHeading;
       break;
 
+    case 'U':
+      if (isUpright) stopRoute();
+      else setGetUp();
+      break;
+
     default:
       Serial.println("Step error: Illegal command.");
       return false;
@@ -186,6 +195,63 @@ void turn() {
 //   speedAdjustment = radiusDiff + headingAdjustment + radiusAdjustment;
 }
 
+
+
+/*****************************************************************************-
+ *  setGetUp() 
+ *****************************************************************************/
+void setGetUp() {
+  isGetUpPhase1 = true;
+  isGetUpBack = (imu.maPitch > 0.0) ? true : false;
+  getUpStartTime = timeMilliseconds;
+  switch (MOTOR_TYPE) {
+    
+    case yellow435:
+      break;
+      
+    case hd437:
+      break;
+      
+    case hd612:
+      getUpPhase1Ms = 200;
+      getUpPhase2Ms = 200;
+      getUpPhase1Kph = 3.0;
+      getUpPhase2Kph = 4.0;
+      break;
+      
+    case yellow1150:
+      break;
+      
+    default:
+      break;
+  }
+  isCountdown = true;
+  countdownTrigger = timeMilliseconds + 600;
+}
+
+
+
+/*****************************************************************************-
+ *  getUp() 
+ *****************************************************************************/
+bool getUp() {
+  float tPortion, kph;
+  unsigned long t = timeMilliseconds - getUpStartTime;
+  if (isGetUpPhase1) {
+    tPortion = ((float) t) / ((float) getUpPhase1Ms);
+    if (tPortion > 1.0) isGetUpPhase1 = false;
+    kph = tPortion * getUpPhase1Kph;
+  } else {
+    if (t > (getUpPhase1Ms + getUpPhase2Ms)) {
+      return true;
+    }
+    kph = -getUpPhase2Kph;
+  }
+  if (!isGetUpBack) kph *= -1.0;
+  targetWKphRight = targetWKphLeft = kph;
+//  Serial.printf("Phase:%d   kph:%5.2f\n", isGetUpPhase1, kph);
+  return false;
+}
 
 
 /*****************************************************************************-

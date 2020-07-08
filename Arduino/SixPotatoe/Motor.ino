@@ -51,6 +51,9 @@ void encoderIsrRight(bool isA) {
 //  bool isChangeDir = false;
   bool isFwd = true;
 
+  tickTimeRight = micros();
+  addTickLogRight(tickTimeRight, isA, (isA) ? encA : encB);
+
   if ((isA && (encA == oldA)) || (!isA && (encB == oldB))) {
     interruptErrorsRight++; // Bogus unterrupt!
     return;
@@ -58,7 +61,6 @@ void encoderIsrRight(bool isA) {
   oldA = encA;
   oldB = encB;
 //  unsigned long lastTickTime = tickTimeRight;
-  tickTimeRight = micros();
   
   // Get direction.
   if (isA && (encA == encB)) isFwd = false;
@@ -99,6 +101,9 @@ void encoderIsrLeft(bool isA) {
   boolean encB = (digitalReadFast(ENC_B_LEFT_PIN) == HIGH) ? true : false;
 //  bool isChangeDir = false;
   bool isFwd = true;
+  
+  tickTimeLeft = micros();
+  addTickLogLeft(tickTimeLeft, isA, (isA) ? encA : encB);
 
   if ((isA && (encA == oldA)) || (!isA && (encB == oldB))) {
     interruptErrorsLeft++; // Bogus unterrupt!
@@ -107,7 +112,6 @@ void encoderIsrLeft(bool isA) {
   oldA = encA;
   oldB = encB;
 //  unsigned long lastTickTime = tickTimeLeft;
-  tickTimeLeft = micros();
   
   // Get direction.
   if (isA && (encA == encB)) isFwd = true;
@@ -325,7 +329,6 @@ void runMotorLeft() {
   motorTargetKphLeft = targetWKphLeft + (wsErrorLpf * g);  // Target speed to correct error
   float pw = abs(motorTargetKphLeft * KPH_TO_PW);            // Pw for the target.
   setMotorLeft(pw, motorTargetKphLeft > 0.0);
-  if (isRunning) addLog(wKphLeft, wKphRight, targetWKphLeft, g);
 }
 
 
@@ -334,6 +337,7 @@ void runMotorLeft() {
  * setMotor????() Set pw and diriction. pw between 0-255
  ******************************************************************************/
 void setMotorRight(int pw, bool isFwd) {
+  pw = 0;
   if (isBatteryCritical) pw = 0;
   else if (!isRunning) pw = 0;
   else if (pw > 255) pw = 255;

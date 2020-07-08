@@ -197,7 +197,10 @@ void MahonyAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float
 boolean IMU::isNewImuData() {
 
   if (icm20948.dataReady()) {
+delay(2);
+unsigned long t = micros();
     icm20948.getAGMT();
+Serial.println(micros() - t);
     accelX   = icm20948.accX() / 1000;  // divide to get units in g
     accelY   = icm20948.accY() / 1000;  // divide to get units in g
     accelZ   = icm20948.accZ() / 1000;  // divide to get units in g
@@ -230,7 +233,7 @@ boolean IMU::isNewImuData() {
 
     compFilter(gyroPitchDelta, gyroRollDelta, gyroYawDelta, accelX, accelY, accelZ);
 
-    vertAccel = (cos(maPitch * DEG_TO_RAD) * accelZ) + (sin(maPitch * DEG_TO_RAD) * accelY);
+    vertAccel = (cos(maPitch * DEG_TO_RAD) * accelZ) - (sin(maPitch * DEG_TO_RAD) * accelY);
     horAccel = (sin(maPitch * DEG_TO_RAD) * accelZ) + (cos(maPitch * DEG_TO_RAD) * accelY);
     horAccelFps += horAccel * 0.213; // K3
 

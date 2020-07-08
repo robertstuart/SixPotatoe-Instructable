@@ -53,9 +53,16 @@ void checkController() {
   }
 
   
-  if (oldCh4State != ch4State) { // Route button 
-    if (ch4State == 1) runRoute(ch5State);
-    else if (ch4State == 0) stopRoute();
+  if (oldCh4State != ch4State) { // Route/GetUp button 
+    if (oldCh4State == 0) {
+      if (ch4State == 1) runRoute(0); // Run 1st route: GetUp
+    } else if (oldCh4State == 1) {
+      if (ch4State == 2) runRoute(ch5State + 1);
+      if (ch4State == 0) stopRoute();
+    } else { // oldCh4State == 2
+      stopRoute();
+    }
+    
     oldCh4State = ch4State;
   }
 }
@@ -137,26 +144,62 @@ void checkLogDump() {
   while (Serial.available() > 0) {
     char c = Serial.read();
     if (c == 'd') {
-      int end = (isLogStrWrap) ? N_STR_LOGS : logStrCount;
-      for (int i = 0; i < end; i++) {
-        Serial.println(logStrs[i]);
-      }
       Serial.println(logHeader);
-      end = (isLogFloatWrap) ? N_FLOAT_LOGS : logFloatCount;
+      int end = (isLogFloatWrap) ? N_FLOAT_LOGS : logFloatCount;
       for (int i = 0; i < end; i++) {
-        Serial.printf("%12.3f,%9.3f,%9.3f,%9.2f\n", 
+        Serial.printf("%12.3f,%9.3f,%9.2f,%9.2f,%9.2f,%9.2f,%9.2f,%9.2f\n", 
                       logFloats[0][i],
                       logFloats[1][i],
                       logFloats[2][i],
-                      logFloats[3][i]);
+                      logFloats[3][i],
+                      logFloats[4][i],
+                      logFloats[5][i],
+                      logFloats[6][i],
+                      logFloats[7][i]);;
       }
     } else if (c == 'z') {
       Serial.println("Log set to zero.");
       logFloatCount = 0;
       isLogFloatWrap = false;
+    } else if (c == 't') {
+      Serial.println("--------------Right-----------");
+      for (int i = 0; i < tcRight; i++) {
+        Serial.printf("%d, %d\n", (int) tickLogRight[i], (int) intLogRight[i]);
+
+      }
+      Serial.println("--------------Left-----------");
+      for (int i = 0; i < tcLeft; i++) {
+        Serial.printf("%d, %d\n", (int) tickLogLeft[i], intLogLeft[i]);
+      }
     }
   }
 }
+
+
+
+/*****************************************************************************-
+ * addTickLog???()
+ *****************************************************************************/
+void addTickLogRight(unsigned long time, bool isA, bool isRise) {
+  tickLogRight[tcRight] = time;
+  byte b = 100;
+  if (isA) b += 1;
+  if (isRise) b += 10;
+  intLogRight[tcRight] = b;
+  tcRight++;
+  if (tcRight >= N_TICK_LOGS) tcRight = 0;
+}
+void addTickLogLeft(unsigned long time, bool isA, bool isRise) {
+  tickLogLeft[tcLeft] = time;
+  byte b = 100;
+  if  (isA) b += 1;
+  if (isRise) b += 10;
+  intLogLeft[tcLeft] = b;
+  tcLeft++;
+  if (tcLeft >= N_TICK_LOGS) tcLeft = 0;
+}
+
+
 
 
 
@@ -168,6 +211,25 @@ void addLog(float a, float b, float c, float d) {
   logFloats[1][logFloatCount] = b;
   logFloats[2][logFloatCount] = c;
   logFloats[3][logFloatCount] = d;
+  logFloats[4][logFloatCount] = 0.0;
+  logFloats[5][logFloatCount] = 0.0;
+  logFloats[6][logFloatCount] = 0.0;
+  logFloats[7][logFloatCount] = 0.0;
+  logFloatCount++;
+  if (logFloatCount >= N_FLOAT_LOGS) {
+    logFloatCount = 0;
+    isLogFloatWrap = true;
+  }
+}
+void addLog(float a, float b, float c, float d, float e, float f, float g, float h) {
+  logFloats[0][logFloatCount] = a;
+  logFloats[1][logFloatCount] = b;
+  logFloats[2][logFloatCount] = c;
+  logFloats[3][logFloatCount] = d;
+  logFloats[4][logFloatCount] = e;
+  logFloats[5][logFloatCount] = f;
+  logFloats[6][logFloatCount] = g;
+  logFloats[7][logFloatCount] = h;
   logFloatCount++;
   if (logFloatCount >= N_FLOAT_LOGS) {
     logFloatCount = 0;
