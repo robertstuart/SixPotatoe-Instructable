@@ -40,104 +40,100 @@ void motorInit() {
 /*****************************************************************************-
  * encoderIsr???()
  *****************************************************************************/
-void encoderIsrRightA() { encoderIsrRight(true ^ ENCODER_PHASE); }
-void encoderIsrRightB() { encoderIsrRight(false ^ ENCODER_PHASE); }
+void encoderIsrRightA() { encoderIsrRight(true); }
+void encoderIsrRightB() { encoderIsrRight(false); }
 void encoderIsrRight(bool isA) {
   static bool oldA = true;
   static bool oldB = true;
-//  static bool oldIsFwd = true;
+  static bool isLastA = true;
+  static unsigned int lastTickTime = 0ul;
+ 
   boolean encA = (digitalReadFast(ENC_A_RIGHT_PIN) == HIGH) ? true : false;
   boolean encB = (digitalReadFast(ENC_B_RIGHT_PIN) == HIGH) ? true : false;
-//  bool isChangeDir = false;
-  bool isFwd = true;
-
-  tickTimeRight = micros();
-  addTickLogRight(tickTimeRight, isA, (isA) ? encA : encB);
-
-  if ((isA && (encA == oldA)) || (!isA && (encB == oldB))) {
-    interruptErrorsRight++; // Bogus unterrupt!
-    return;
-  }
+  unsigned long tickTime = micros();
+  bool isFlipA = (encA != oldA);
+  bool isFlipB = (encB != oldB);
   oldA = encA;
   oldB = encB;
-//  unsigned long lastTickTime = tickTimeRight;
-  
-  // Get direction.
-  if (isA && (encA == encB)) isFwd = false;
-  else if (!isA && (encA != encB)) isFwd = false;
-  else isFwd = true;
-//  if (oldIsFwd != isFwd) isChangeDir = true;
-//  oldIsFwd = isFwd;
-  
-  tickPositionRight = (isFwd) ? (tickPositionRight + 1) : (tickPositionRight - 1);
+//  addTickLog(tickTimeRight, isMotFwd, isA, encA, encB);
+  if ((isA && !isFlipA) || (!isA && !isFlipB)) {
+    interruptErrorsRightA++; // Bogus unterrupt'
+    return;
+  }
+  if (isLastA == isA) {
+    interruptErrorsRightB++;  // Bogus unterrupt or direction change.
+    return;
+  }
+  if ((tickTime - lastTickTime) < 55) {
+    interruptErrorsRightC++;  // Shouldn't happen
+  }
+  isLastA = isA;
+  lastTickTime = tickTime;
 
-  // New encoder balancing
-  ptrRight++;
-  ptrRight = ptrRight % 5;
-  timesRight[ptrRight] = tickTimeRight;
-  dirsRight[ptrRight] = isFwd;
-  tickCountRight++;
+  bool isFwd;
+  if      (isA  && (encA == encB)) isFwd = true;
+  else if (!isA && (encA != encB)) isFwd = true;
+  else                             isFwd = false;
+  byte stateByte = (isFwd) ? STATE_DIR : 0;
+  stateByte     |= (isA)   ? STATE_ISA : 0;
+  stateByte     |= (encA)  ? STATE_A : 0;
+  stateByte     |= (encB)  ? STATE_B : 0;
   
-//  if (isChangeDir) {
-//    changeDirRight++;
-//    return; // Don't time reversals
-//  }
-//  int tickPeriodRight = (int) (tickTimeRight - lastTickTime);
-//  if (!isFwd) tickPeriodRight = - tickPeriodRight;
-//  tickSumRight += tickPeriodRight;
+  tickPtrRight++;
+  tickPtrRight %= N_TICK_BUFF;
+  tickTimesRight[tickPtrRight] = tickTime;
+  tickStatesRight[tickPtrRight] = stateByte;
+  ticksRight++;
 } // encoderIsrRight()
 
 
 /*****************************************************************************-
    encoderIsrLeft()
  *****************************************************************************/
-void encoderIsrLeftA() { encoderIsrLeft(true ^ ENCODER_PHASE); }
-void encoderIsrLeftB() { encoderIsrLeft(false ^ ENCODER_PHASE); }
+void encoderIsrLeftA() { encoderIsrLeft(true); }
+void encoderIsrLeftB() { encoderIsrLeft(false); }
 void encoderIsrLeft(bool isA) {
   static bool oldA = true;
   static bool oldB = true;
-//  static bool oldIsFwd = true;
+  static bool isLastA = true;
+  static unsigned int lastTickTime = 0ul;
+ 
   boolean encA = (digitalReadFast(ENC_A_LEFT_PIN) == HIGH) ? true : false;
   boolean encB = (digitalReadFast(ENC_B_LEFT_PIN) == HIGH) ? true : false;
-//  bool isChangeDir = false;
-  bool isFwd = true;
-  
-  tickTimeLeft = micros();
-  addTickLogLeft(tickTimeLeft, isA, (isA) ? encA : encB);
-
-  if ((isA && (encA == oldA)) || (!isA && (encB == oldB))) {
-    interruptErrorsLeft++; // Bogus unterrupt!
-    return;
-  }
+  unsigned long tickTime = micros();
+  bool isFlipA = encA == oldA;
+  bool isFlipB = encB == oldB;
   oldA = encA;
   oldB = encB;
-//  unsigned long lastTickTime = tickTimeLeft;
   
-  // Get direction.
-  if (isA && (encA == encB)) isFwd = true;
-  else if (!isA && (encA != encB)) isFwd = true;
-  else isFwd = false;
-//  if (oldIsFwd != isFwd) isChangeDir = true;
-//  oldIsFwd = isFwd;
-  
-  tickPositionLeft = (isFwd) ? (tickPositionLeft + 1) : (tickPositionLeft - 1);
+  if ((isA && isFlipA) || (!isA &&isFlipB)) {
+    interruptErrorsLeftA++; // Bogus unterrupt'
+    return;
+  }
+  if (isLastA == isA) {
+    interruptErrorsLeftB++;  // Bogus unterrupt or direction change.
+    return;
+  }
+  if ((tickTime - lastTickTime) < 55) {
+    interruptErrorsLeftC++;  // Shouldn't happen
+  }
+  isLastA = isA;
+  lastTickTime = tickTime;
 
-  // New encoder balancing
-  ptrLeft++;
-  ptrLeft = ptrLeft % 5;
-  timesLeft[ptrLeft] = tickTimeLeft;
-  dirsLeft[ptrLeft] = isFwd;
-  tickCountLeft++;
-
+  bool isFwd;
+  if      (isA  && (encA == encB)) isFwd = false;
+  else if (!isA && (encA != encB)) isFwd = false;
+  else                             isFwd = true;
+  byte stateByte = (isFwd) ? STATE_DIR : 0;
+  stateByte     |= (isA)   ? STATE_ISA : 0;
+  stateByte     |= (encA)  ? STATE_A : 0;
+  stateByte     |= (encB)  ? STATE_B : 0;
   
-//  if (isChangeDir) {
-//    changeDirLeft++;
-//    return; // Don't time reversals
-//  }
-//  int tickPeriodLeft = (int) (tickTimeLeft - lastTickTime);
-//  if (!isFwd) tickPeriodLeft = - tickPeriodLeft;
-//  tickSumLeft += tickPeriodLeft;
-//  tickCountLeft++;
+  tickPtrLeft++;
+  tickPtrLeft %= N_TICK_BUFF;
+  tickTimesLeft[tickPtrLeft] = tickTime;
+  tickStatesLeft[tickPtrLeft] = stateByte;
+  ticksLeft++;
 } // end encoderIsrLeft();
 
 
@@ -146,140 +142,94 @@ void encoderIsrLeft(bool isA) {
  * readSpeed????()  Called every loop from CheckMotor()
  *****************************************************************************/
 void readSpeedRight() {
-  unsigned long times[5];
-  unsigned long dirs[5];
-  int period = 1;
-  boolean isTick;
+  static float predictedKphRight = 0.0;
+  static int oldTickPtr = 0;
+  
+  int tickSum = 0;
+  int tickCount = 0;
+  bool isEndFwd = false;
 
-  // Copy the arrays.
-  noInterrupts();
-  int ptr = (ptrRight + 1) % 5;  // Point to the oldest in the array.
-  for (int i = 0; i < 5; i++) {
-    times[i] = timesRight[ptr];
-    dirs[i] = dirsRight[ptr];
-    ptr++;
-    ptr = ptr % 5;
-  }
-  isTick = tickCountRight > 0;
-  tickCountRight = 0;
-  interrupts();
-  unsigned long t = micros();
+  // Calculate predicted kph
+  float tgtKph =((float) motorPwRight) / KPH_TO_PW;
+  float pdiff = predictedKphRight - tgtKph;
+  predictedKphRight -= pdiff * K6;
 
-  boolean d = dirs[0];
-  boolean isSameDir = (d == dirs[1]) && (d == dirs[2]) && (d == dirs[3]) && (d == dirs[4]);
-  boolean isAllRecent = (t - times[0]) < 50000;
-  if (isAllRecent && isSameDir) {
-    // Compute kph in normal running state.
-    period = (times[4] - times[0]) / 4;
-    wKphRight = USEC_TO_KPH / ((float) period);
-    if (dirs[4] == false) wKphRight = -wKphRight;
-//Serial.print('a');
-  } else if (dirs[3] != dirs[4]) {
-    // Change of direction.  No speed.
-    wKphRight = 0.0;
-//Serial.print('b');
-  } else if (isTick == false) {
-    // compute new kph if no tick
-    float newWKph = USEC_TO_KPH / ((float) (t - times[4]));
-    if (newWKph < abs(wKphRight)) {
-      wKphRight = newWKph; // Set new if lower
-      if (dirs[4] == false) wKphRight = -wKphRight;
+  bool isStartFwd = ((tickStatesRight[oldTickPtr] & STATE_DIR) != 0) ^ ENCODER_PHASE;
+  tickCount = ((tickPtrRight + N_TICK_BUFF) - oldTickPtr) % N_TICK_BUFF;
+  if (tickCount == 0) { // No interrupts?
+    unsigned long t = micros();
+    int period = t - tickTimesRight[tickPtrRight];
+    float newKph = USEC_TO_KPH / ((float) period);
+    if (abs(newKph) < abs(wKphRight)) {
+      wKphRight = newKph;
+      if (!isStartFwd) wKphRight *= -1.0;
     }
-//Serial.print('c');
   } else {
-    // compute new kph if tick
-    period = times[4] - times[3];
+    if ((MOTOR_EVENTS < 30) && (tickCount < 3)) {
+      oldTickPtr = tickPtrRight - 4;
+      if (oldTickPtr < 0) oldTickPtr += N_TICK_BUFF;
+      tickCount = 4;
+    }
+    for (int i = 0; i < tickCount; i++) {
+      tickSum += tickTimesRight[(oldTickPtr + 1) % N_TICK_BUFF] - tickTimesRight[oldTickPtr];
+      oldTickPtr++;
+      oldTickPtr %= N_TICK_BUFF;
+      isEndFwd = ((tickStatesRight[oldTickPtr] & STATE_DIR) != 0) ^ ENCODER_PHASE;
+      tickPositionRight +=  (isEndFwd) ? 1 : -1;
+    }
+    int period = tickSum / tickCount;
     wKphRight = USEC_TO_KPH / ((float) period);
-    if (dirs[4] == false) wKphRight = -wKphRight;
-//Serial.print('d');
+    if (isStartFwd != isEndFwd) wKphRight = 0.0;
+    if (!isEndFwd) wKphRight *= -1.0;
   }
-//  if (abs(wKphRight) > 0.1) {
-//    char c = (wKphRight < 0.0) ? '-' : '+';
-//    int n = abs(wKphRight) * 10.0;
-//    for (int i = 0; i < n; i++) {
-//      Serial.print(c);
-//    }
-//    Serial.println();
-//  }
+//if (abs(wKphRight) > 0.1) Serial.printf("%6.2f  %6.2f %6.2f\n", wKphRight, predictedKphRight, pdiff);
+if (isRunning) addLog(wKphRight, predictedKphRight, imu.maPitch, 0.0);
+
 }
 
 void readSpeedLeft() {
-  unsigned long times[5];
-  unsigned long dirs[5];
-  int period = 1;
-  boolean isTick;
-
-  // Copy the arrays.
-  noInterrupts();
-  int ptr = (ptrLeft + 1) % 5;  // Point to the oldest in the array.
-  for (int i = 0; i < 5; i++) {
-    times[i] = timesLeft[ptr];
-    dirs[i] = dirsLeft[ptr];
-    ptr++;
-    ptr = ptr % 5;
-  }
-  isTick = tickCountLeft > 0;
-  tickCountLeft = 0;
-  interrupts();
-  unsigned long t = micros();
-
-  boolean d = dirs[0];
-  boolean isSameDir = (d == dirs[1]) && (d == dirs[2]) && (d == dirs[3]) && (d == dirs[4]);
-  boolean isAllRecent = (t - times[0]) < 50000;
-  if (isAllRecent && isSameDir) {
-    // Compute kph in normal running state.
-    period = (times[4] - times[0]) / 4;
-    wKphLeft = USEC_TO_KPH / ((float) period);
-    if (dirs[4] == false) wKphLeft = -wKphLeft;
-//Serial.print('a');
-  } else if (dirs[3] != dirs[4]) {
-    // Change of direction.  No speed.
-    wKphLeft = 0.0;
-//Serial.print('b');
-  } else if (isTick == false) {
-    // compute new kph if no tick
-    float newWKph = USEC_TO_KPH / ((float) (t - times[4]));
-    if (newWKph < abs(wKphLeft)) {
-      wKphLeft = newWKph; // Set new if lower
-      if (dirs[4] == false) wKphLeft = -wKphLeft;
-    }
-//Serial.print('c');
-  } else {
-    // compute new kph if tick
-    period = times[4] - times[3];
-    wKphLeft = USEC_TO_KPH / ((float) period);
-    if (dirs[4] == false) wKphLeft = -wKphLeft;
-//Serial.print('d');
-  }
+  static float predictedKphLeft = 0.0;
+  static int oldTickPtr = 0;
   
-//  noInterrupts();
-//  long sum = tickSumLeft;
-//  int count =  tickCountLeft;
-//  tickSumLeft = 0L;
-//  tickCountLeft = 0;
-//  interrupts();
-//  if (count == 0) {
-//    float newWKph = USEC_TO_KPH / ((float) (micros() - tickTimeLeft));
-//    if (wKphLeft < 0.0) newWKph = -newWKph;
-//    if (newWKph > 0.0) {
-//      if (newWKph < wKphLeft) wKphLeft = newWKph; // Set new if lower
-//    } else {
-//      if (newWKph > wKphLeft) wKphLeft = newWKph; // Set new if lower
-//    }
-//  }
-//  else {
-//    wKphLeft = (USEC_TO_KPH * ((float) count)) / ((float) sum);
-//  }
+  int tickSum = 0;
+  int tickCount = 0;
+  bool isEndFwd = false;
 
-//  if (abs(wKphLeft) > 0.1) Serial.printf("%6.2f  ", wKphLeft);
-//  if (abs(wKphLeft) > 0.1) {
-//    char c = (wKphLeft < 0.0) ? '-' : '+';
-//    int n = abs(wKphLeft) * 10.0;
-//    for (int i = 0; i < n; i++) {
-//      Serial.print(c);
-//    }
-//    Serial.println();
-//  }
+  // Calculate predicted kph
+  float tgtKph =((float) motorPwLeft) / KPH_TO_PW;
+  float pdiff = predictedKphLeft - tgtKph;
+  predictedKphLeft -= pdiff * K6;
+  
+  bool isStartFwd = ((tickStatesLeft[oldTickPtr] & STATE_DIR) != 0) ^ ENCODER_PHASE;
+  tickCount = ((tickPtrLeft + N_TICK_BUFF) - oldTickPtr) % N_TICK_BUFF;
+
+  if (tickCount == 0) { // No interrupts?
+    unsigned long t = micros();
+    int period = t - tickTimesLeft[tickPtrLeft];
+    float newKph = USEC_TO_KPH / ((float) period);
+    if (abs(newKph) < abs(wKphLeft)) {
+      wKphLeft = newKph;
+      if (!isStartFwd) wKphLeft *= -1.0;
+    }
+  } else {
+    if ((MOTOR_EVENTS < 30) && (tickCount < 3)) {
+      oldTickPtr = tickPtrLeft - 4;
+      if (oldTickPtr < 0) oldTickPtr += N_TICK_BUFF;
+      tickCount = 4;
+    }
+    for (int i = 0; i < tickCount; i++) {
+      tickSum += tickTimesLeft[(oldTickPtr + 1) % N_TICK_BUFF] - tickTimesLeft[oldTickPtr];
+      oldTickPtr++;
+      oldTickPtr %= N_TICK_BUFF;
+      isEndFwd = ((tickStatesLeft[oldTickPtr] & STATE_DIR) != 0) ^ ENCODER_PHASE;
+      tickPositionLeft +=  (isEndFwd) ? 1 : -1;
+    }
+    int period = tickSum / tickCount;
+    wKphLeft = USEC_TO_KPH / ((float) period);
+    if (isStartFwd != isEndFwd) wKphLeft = 0.0;
+    if (!isEndFwd) wKphLeft *= -1.0;
+  }
+//if (abs(wKphLeft) > 0.1) Serial.printf("%6.2f  %6.2f %6.2f\n", wKphLeft, predictedKphLeft, pdiff);
 }
 
 
@@ -312,8 +262,8 @@ void runMotorRight() {
     g = (abs(targetWKphRight) * g);
   }
   motorTargetKphRight = targetWKphRight + (wsErrorLpf * g);  // Target speed to correct error
-  float pw = abs(motorTargetKphRight * KPH_TO_PW);            // Pw for the target.
-  setMotorRight(pw, motorTargetKphRight > 0.0);
+  int pw = (int) (motorTargetKphRight * KPH_TO_PW);            // Pw for the target.
+  setMotorRight(pw);
 }
 
 void runMotorLeft() {
@@ -327,32 +277,35 @@ void runMotorLeft() {
     g = (abs(targetWKphLeft) * g);
   }
   motorTargetKphLeft = targetWKphLeft + (wsErrorLpf * g);  // Target speed to correct error
-  float pw = abs(motorTargetKphLeft * KPH_TO_PW);            // Pw for the target.
-  setMotorLeft(pw, motorTargetKphLeft > 0.0);
+  int pw = (int) (motorTargetKphLeft * KPH_TO_PW);            // Pw for the target.
+  setMotorLeft(pw);
 }
 
 
 
 /*****************************************************************************-
- * setMotor????() Set pw and diriction. pw between 0-255
+ * setMotor????() Set pw and diriction. pw between -254 & +255
  ******************************************************************************/
-void setMotorRight(int pw, bool isFwd) {
-  pw = 0;
+void setMotorRight(int pw) {
+  int dir = (pw >= 0) ? LOW : HIGH;
+  pw = abs(pw);
   if (isBatteryCritical) pw = 0;
   else if (!isRunning) pw = 0;
   else if (pw > 255) pw = 255;
   else if (pw < 0) pw = 0;
-  digitalWrite(DIR_RIGHT_PIN, (isFwd) ? LOW : HIGH);
-  analogWrite(PWM_RIGHT_PIN, pw);\
-  motorRightPw = pw;  // For panic
+  digitalWrite(DIR_RIGHT_PIN, dir);
+  analogWrite(PWM_RIGHT_PIN, pw);
+  motorPwRight = pw; 
 }
 
-void setMotorLeft(int pw, bool isFwd) {
+void setMotorLeft(int pw) {
+  int dir = (pw >= 0) ? HIGH : LOW;
+  pw = abs(pw);
   if (isBatteryCritical) pw = 0;
   else if (!isRunning) pw = 0;
   else if (pw > 255) pw = 255;
   else if (pw < 0) pw = 0;
-  digitalWrite(DIR_LEFT_PIN, (isFwd) ? HIGH : LOW);
+  digitalWrite(DIR_LEFT_PIN, dir);
   analogWrite(PWM_LEFT_PIN, pw);
-  motorLeftPw = pw;
+  motorPwLeft = pw;
 }

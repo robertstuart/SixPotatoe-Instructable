@@ -1,10 +1,6 @@
 /*****************************************************************************-
  *                           Run.ino 
  *****************************************************************************/
-//float kphCorrection = 0.0f;
-//float angleError = 0.0;
-//float targetPitch = 0.0;
-//float kphAdjustment = 0.0;
 
 
 /*****************************************************************************-
@@ -13,8 +9,7 @@
 void run() {
   commonTasks();
   if (imu.isNewImuData()) {
-//unsigned long t = micros();
-      
+    
     if (isRouteInProgress) routeControl(); 
     else rcControl();
 
@@ -25,13 +20,6 @@ void run() {
     blinkTeensy();
     updateCartesian();
     postLog();
-    if (isCountdown) {
-      if (countdownTrigger < timeMilliseconds) {
-        isRunning = false;
-        isCountdown = false;
-      }
-    }
-//Serial.println(micros() - t);    
   }
 }
 
@@ -113,9 +101,6 @@ void balance() {
 
   targetWKphRight = targetWKph - balanceSteerAdjustment;
   targetWKphLeft = targetWKph + balanceSteerAdjustment;
-if (isRunning) {
-  addLog(imu.maPitch, imu.vertAccel, wKph, targetPitch, angleError, kphCorrectionA, kphCorrectionB, targetWKph );
-} 
 } // end balance() 
 
 
@@ -160,11 +145,11 @@ void setCoKph() {
  *****************************************************************************/
 void postLog() {
   static unsigned int logLoop = 0;
-  const int MOD = 20;  // 1 = every loop, 2 = every other loop, mod3 = every 3rd loop, etc.
+  const int MOD = 1;  // 1 = every loop, 2 = every other loop, mod3 = every 3rd loop, etc.
   logLoop++;
   if ((logLoop % MOD) == 0) { 
-    if (isRunning && isRouteInProgress) {
-      addLog(imu.gHeading, currentLoc.x, currentLoc.y, routeCurrentAction);
+    if (isRunning) {
+//      addLog(wKphRight, predictedKphRight, wKphLeft, predictedKphLeft);
     }
   }
 }
