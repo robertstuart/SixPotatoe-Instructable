@@ -7,8 +7,7 @@
 const float GYRO_WEIGHT = 0.997;
 
 // Base
-class IMU
-{
+class IMU {
 private:
   ICM_20948_I2C icm20948;
 
