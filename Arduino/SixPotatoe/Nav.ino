@@ -174,6 +174,25 @@ void turn() {
   currentRotation = startTurnBearing - imu.gHeading;
   float d = (stepRotation > 0.0) ? 1.0 : -1.0;
   balanceSteerAdjustment = (wKph / turnRadius) * 0.15 * d;
+
+//  if (isRightTurn) {
+//    xDist = (currentLoc.x - pivotLoc.x);
+//    yDist = (currentLoc.y - pivotLoc.y);
+//    radiusAngle = atan2(xDist, yDist) * RAD_TO_DEG;
+//    targetTurnHeading = rangeAngle(radiusAngle + 90.0);
+//    headingError = rangeAngle(imu.gHeading - targetTurnHeading);
+//  } else {
+//    xDist = (currentLoc.x - pivotLoc.x);
+//    yDist = (currentLoc.y - pivotLoc.y);
+//    radiusAngle = atan2(xDist, yDist) * RAD_TO_DEG;
+//    targetTurnHeading = rangeAngle(radiusAngle - 90.0);
+//    headingError = rangeAngle(imu.gHeading - targetTurnHeading);
+//  }
+//
+//  float radiusError = sqrt((xDist * xDist) + (yDist * yDist)) - turnRadius;
+//  float radiusAdjustment = radiusError * 0.3 * d;
+//  float headingAdjustment = -headingError * 0.03;
+//   speedAdjustment = radiusDiff + headingAdjustment + radiusAdjustment;
 }
 
 
@@ -182,9 +201,32 @@ void turn() {
  *  setGetUp() 
  *****************************************************************************/
 void setGetUp() {
-  getUpPhase = PHASE1;
+  isGetUpPhase1 = true;
   isGetUpBack = (imu.maPitch > 0.0) ? true : false;
   getUpStartTime = timeMilliseconds;
+  switch (MOTOR_TYPE) {
+    
+    case yellow435:
+      break;
+      
+    case hd437:
+      break;
+      
+    case hd612:
+      getUpPhase1Ms = 200;
+      getUpPhase2Ms = 200;
+      getUpPhase1Kph = 3.0;
+      getUpPhase2Kph = 4.0;
+      break;
+      
+    case yellow1150:
+      break;
+      
+    default:
+      break;
+  }
+  isCountdown = true;
+  countdownTrigger = timeMilliseconds + 600;
 }
 
 
@@ -193,27 +235,22 @@ void setGetUp() {
  *  getUp() 
  *****************************************************************************/
 bool getUp() {
-  bool ret = false;
-  float tPortion = 0.0;;
-  float kph = 0.0;
-  unsigned long phaseTime;
-  if (getUpPhase == PHASE1) { // Phase 1
-    phaseTime = timeMilliseconds - getUpStartTime;
-    tPortion = ((float) phaseTime) / ((float) getUpPhase1Ms);
-    if (tPortion > 1.0) getUpPhase = PHASE2;
+  float tPortion, kph;
+  unsigned long t = timeMilliseconds - getUpStartTime;
+  if (isGetUpPhase1) {
+    tPortion = ((float) t) / ((float) getUpPhase1Ms);
+    if (tPortion > 1.0) isGetUpPhase1 = false;
     kph = tPortion * getUpPhase1Kph;
-  } else if (getUpPhase == PHASE2) {
-    phaseTime = timeMilliseconds - getUpPhase1Ms - getUpStartTime;
-    tPortion = ((float) phaseTime) / ((float) getUpPhase2Ms);    
-    if (tPortion > 1.0) getUpPhase = PHASE3;
-    kph = (getUpPhase1Kph * (1.0 - tPortion)) - (tPortion * getUpPhase2Kph);
   } else {
-    ret = true;
+    if (t > (getUpPhase1Ms + getUpPhase2Ms)) {
+      return true;
+    }
+    kph = -getUpPhase2Kph;
   }
   if (!isGetUpBack) kph *= -1.0;
   targetWKphRight = targetWKphLeft = kph;
-  if (isUpright) ret = true;
-  return ret;
+//  Serial.printf("Phase:%d   kph:%5.2f\n", isGetUpPhase1, kph);
+  return false;
 }
 
 

@@ -18,7 +18,9 @@ float deltat = 0.05f;                              // integration interval for b
 float q[4] = {0.0f, 0.0f, 0.0f, 0.0f};            // vector to hold quaternion
 
 // Base
-IMU::IMU() {}
+IMU::IMU() {
+
+}
 
 /*****************************************************************************-
  *   imuInit()  Initialize the Invensense ICM-20948.  This function use
@@ -195,7 +197,10 @@ void MahonyAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float
 boolean IMU::isNewImuData() {
 
   if (icm20948.dataReady()) {
+delay(2);
+unsigned long t = micros();
     icm20948.getAGMT();
+Serial.println(micros() - t);
     accelX   = icm20948.accX() / 1000;  // divide to get units in g
     accelY   = icm20948.accY() / 1000;  // divide to get units in g
     accelZ   = icm20948.accZ() / 1000;  // divide to get units in g

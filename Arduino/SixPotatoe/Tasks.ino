@@ -14,7 +14,7 @@ void commonTasks() {
   checkUpright();
   checkController();
   setRunningState();
-  checkConsole();
+  checkLogDump();
   battery();
 }
 
@@ -137,10 +137,10 @@ void checkUpright() {
 
 
 /*****************************************************************************-
- * checkConsole() Dump the log to the terminal so that the data can be 
+ * checkLogDump() Dump the log to the terminal so that the data can be 
  *                captured and analyzed by Excel.
  *****************************************************************************/
-void checkConsole() {
+void checkLogDump() {
   while (Serial.available() > 0) {
     char c = Serial.read();
     if (c == 'd') {
@@ -171,11 +171,6 @@ void checkConsole() {
       for (int i = 0; i < tcLeft; i++) {
         Serial.printf("%d, %d\n", (int) tickLogLeft[i], intLogLeft[i]);
       }
-    } else if (c == 'e') {
-      Serial.printf("Right Ticks: %d    ErrorA: %d   ErrorB: %d    ErrorC: %d\n",
-                    ticksRight, interruptErrorsRightA, interruptErrorsRightB, interruptErrorsRightC);
-      Serial.printf("Left Ticks: %d    ErrorA: %d   ErrorB: %d    ErrorC: %d\n",
-                    ticksLeft, interruptErrorsLeftA, interruptErrorsLeftB, interruptErrorsLeftC);
     }
   }
 }
@@ -212,7 +207,19 @@ void addTickLogLeft(unsigned long time, bool isA, bool isRise) {
  * addLog()
  *****************************************************************************/
 void addLog(float a, float b, float c, float d) {
-  addLog(a, b, c, d, 0.0, 0.0, 0.0, 0.0);
+  logFloats[0][logFloatCount] = a;
+  logFloats[1][logFloatCount] = b;
+  logFloats[2][logFloatCount] = c;
+  logFloats[3][logFloatCount] = d;
+  logFloats[4][logFloatCount] = 0.0;
+  logFloats[5][logFloatCount] = 0.0;
+  logFloats[6][logFloatCount] = 0.0;
+  logFloats[7][logFloatCount] = 0.0;
+  logFloatCount++;
+  if (logFloatCount >= N_FLOAT_LOGS) {
+    logFloatCount = 0;
+    isLogFloatWrap = true;
+  }
 }
 void addLog(float a, float b, float c, float d, float e, float f, float g, float h) {
   logFloats[0][logFloatCount] = a;
@@ -270,6 +277,7 @@ void battery() {
       for (int i = 0; i < VOLT_ARRAY_SIZE; i++) voltArray[i] = 25.0;
     }
     float battVolt = ((float) analogRead(BATTERY_PIN)) * .02603;
+//    Serial.println(battVolt);
     if (battVolt < 5.0) { // running off of USB power?
       isBatteryCritical = isBatteryWarn = false;
     } else {
