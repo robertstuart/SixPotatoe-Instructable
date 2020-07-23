@@ -13,7 +13,6 @@
 //#define YELLOW_1150   
 //#define HD_437
 //#define HD_612
-//#define HD_1621
 
 const float WHEEL_DIA_MM = 120.6;  // The diameter of the wheel.
 const float NOMINAL_VOLTS = 12.0;  // Voltage at which motor is rated.
@@ -24,26 +23,24 @@ const float BATTERY_VOLTS = 25.2;  // 6 cells at 4.2V per cell
 const float K0  = 10.0;     // Motor gain.  
 const float K1  = 1.6;      // Pitch delta to COS
 const float K2  = 0.05;     // 1.0 passes all hf, near zero passes only low freq.
-const float K3  = 0.213;     // Accelerometer to Kph
-const float K4  = 0.2;       // targetKph rate of change limit per cycle
+const float K3  = 0.213;    // Accelerometer to Kph
+const float K4  = 0.2;      // targetKph rate of change limit per cycle
 const float K5  = 2.0;      // Angle Gain. Speed error to angle
 const float K6  = 0.2;      // TC for predicted kph
 const float K8  = 0.2;      // bowl roll compensation at top.
 const float K10 = 1.4;      // accelerometer pitch offset
 const float K12 = 50.0;     // +- constraint on target pitch
-const float K13 = 30.0;           // +- constraint on pitch error to prevent too rapid righting
-//const float K13 = 20.0;     // +- constraint on pitch error to prevent too rapid righting
+const float K13 = 30.0;     // +- constraint on pitch error to prevent too rapid righting
 const float K14 = 0.15;     // Angle error to Kph
 const float K15 = 70;       // pitch beyond which is considered to not be upright
 const int   K16 = 50;       // ms time for pitch < K16 to be not upright
 const float K17 = 0.1;      // "D"
-//const float K17 = 0.5;      // "D"
-const int   K20 = 150;       // LED brightness, 0-255;
+const int   K20 = 150;      // LED brightness, 0-255;
 const float K21 = 0.95;     // TC for accelCoKph
 const float K30 = 0.7;      // proportion of MAX_MOTOR_KPH for max kph
 const float K31 = 5.0;      // Maximum speed for Kph on ground.
 const float K32 = 2.0;      // Maximum steering on ground.
-const float K40 = 1.035;      // gyro correction
+const float K40 = 1.000;    // gyro correction
 
 
 // One of the following are set to "true" for initial testing.
@@ -52,4 +49,4 @@ const bool IS_TEST2 = false;  // Set to be true for the 2nd system test.
 const bool IS_TEST3 = false;  // Set to be true for the 3nd system test.
 const bool IS_TEST4 = false;  // Set to be true for the 4th system test.
 
-#endif  // _DEFS_H_k
+#endif  // _DEFS_H_

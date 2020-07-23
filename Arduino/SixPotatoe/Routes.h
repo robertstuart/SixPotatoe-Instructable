@@ -98,8 +98,11 @@ String BigOutNBack2[] = {
 };
 
 
-
-// 5 routes: 1, 2, 3, 4, & 5;
+/*****************************************************************************-
+ * 1st rout is selected by CH4 in the middle positon,
+ * routes: 1, 2, 3, 4, & 5 are selected by CH4 in the right positon
+ * & the left top control.
+ *****************************************************************************/
 String* routeTable[] = {
   GetUp,
   LittleP,

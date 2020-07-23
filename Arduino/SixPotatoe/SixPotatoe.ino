@@ -7,11 +7,10 @@
 #include "Defs.h"
 
 #ifdef YELLOW_435
-//const enum motorType MOTOR_TYPE = yellow435;
 const float MOTOR_RPM = 435.0;        // RPM at 12V
 const float MOTOR_GEAR_RATIO = 13.7;
 const float MOTOR_EVENTS = 28.0;       // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = true;
+const bool ENCODER_PHASE = false;
 const float K0_MULT = 0.42;
 const float K5_MULT = 1.5;
 const float K13_MULT = 1.0;
@@ -19,7 +18,6 @@ const float K14_MULT = 1.0;
 #endif // YELLOW_435
 
 #ifdef HD_437
-//const enum motorType MOTOR_TYPE = hd437;
 const float MOTOR_RPM = 437.0;          // RPM at 12V
 const float MOTOR_GEAR_RATIO = 19.2;
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
@@ -31,7 +29,6 @@ const float K14_MULT = 1.0;
 #endif // HD_437
 
 #ifdef HD_612
-//const enum motorType MOTOR_TYPE = hd612;
 const float MOTOR_RPM = 612.0;          // RPM at 12V
 const float MOTOR_GEAR_RATIO = 13.7;
 const float MOTOR_EVENTS = 48.0;        // Encoder ticks per motor revolution
@@ -43,12 +40,10 @@ const float K14_MULT = 1.0;            // Angle error gain
 #endif // HD_612
 
 #ifdef YELLOW_1150
-// Tested good on street 20-Jun-20
-//const enum motorType MOTOR_TYPE = yellow1150;
 const float MOTOR_RPM = 1150.0;         // RPM at 12V
 const float MOTOR_GEAR_RATIO = 5.2;
 const float MOTOR_EVENTS = 28.0;        // Encoder ticks per motor revolution
-const bool ENCODER_PHASE = true;
+const bool ENCODER_PHASE = false;
 const float K0_MULT = 0.9;              // Motor gain
 const float K5_MULT = 0.8;              // Speed error to angle
 const float K13_MULT = 1.0;             // Constrain pitch error
@@ -97,19 +92,24 @@ enum BlinkState {
 
 BlinkState currentBlink = BLINK_OFF;
 
-//#define N_FLOAT_LOGS 1  // max before running out of memory
-#define N_FLOAT_LOGS 7000  // max before running out of memory
-float logFloats[8][N_FLOAT_LOGS];
-int logFloatCount = 0;
-boolean isLogFloatWrap = false;
-String logHeader = "No Header";
-#define N_TICK_LOGS 1 // 40,000 near limit
-//#define N_TICK_LOGS 20000 // 40,000 near limit
+// Data logging
+String logHeader = "No Header";  // Set this if you want to add labels.
+#define N_8FLOAT_LOGS 10000      // ~10,000 max. Set to 1 when not logging. 
+#define N_4FLOAT_LOGS 1      // ~20,000 max. Set to 1 when not logging. 
+#define N_TICK_LOGS   1      // ~40,000 max. Set to 1 when not logging.
+float log8Floats[8][N_8FLOAT_LOGS];
+int log8FloatCount = 0;
+boolean isLog8FloatWrap = false;
+float log4Floats[4][N_4FLOAT_LOGS];
+int log4FloatCount = 0;
+boolean isLog4FloatWrap = false;
+
+// Tick logging
 unsigned long tickLogRight[N_TICK_LOGS];
-byte intLogRight[N_TICK_LOGS];
-int tcRight = 0;
 unsigned long tickLogLeft[N_TICK_LOGS];
+byte intLogRight[N_TICK_LOGS];
 byte intLogLeft[N_TICK_LOGS];
+int tcRight = 0;
 int tcLeft = 0;
 
 // Motor varialbles
@@ -237,6 +237,7 @@ IMU imu;
 void setup() {
   Serial.begin(115200);
   Wire.begin();
+//  Wire.setClock(400000);
  
   // Motor pins are initialized in motorInit()
   pinMode(LED_PIN, OUTPUT);
@@ -276,10 +277,9 @@ void loop() {
 void systemTest1() {  // Check IMU
   static unsigned long lastT = 0;
   if (imu.isNewImuData()) {
-    unsigned long newT = millis();
-    Serial.printf(
-            "Pitch:%6.2f   Roll:%6.2f   Yaw:%6.2f   Period:%2d ms\n", 
-            imu.maPitch, imu.maRoll, imu.maYaw, ((int) (newT - lastT)));
+    unsigned long newT = micros();
+    Serial.printf("Pitch:%6.2f   Roll:%6.2f   Yaw:%6.2f   Period:%2d usec\n", 
+                  imu.maPitch, imu.maRoll, imu.maYaw, ((int) (newT - lastT)));
     lastT = newT;
     blinkTeensy();
   }

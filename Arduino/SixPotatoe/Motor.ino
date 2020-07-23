@@ -182,8 +182,12 @@ void readSpeedRight() {
     if (isStartFwd != isEndFwd) wKphRight = 0.0;
     if (!isEndFwd) wKphRight *= -1.0;
   }
-//if (abs(wKphRight) > 0.1) Serial.printf("%6.2f  %6.2f %6.2f\n", wKphRight, predictedKphRight, pdiff);
-if (isRunning) addLog(wKphRight, predictedKphRight, imu.maPitch, 0.0);
+if (abs(wKphRight) > 0.1) Serial.printf("%6.2f  %6.2f %6.2f\n", wKphRight, predictedKphRight, pdiff);
+if (isRunning) add8Log(wKphRight, predictedKphRight, imu.maPitch, motorPwRight, 
+                       (float) interruptErrorsRightA,
+                       (float) interruptErrorsRightB,
+                       (float) interruptErrorsRightC,
+                       0.0);
 
 }
 
@@ -287,25 +291,23 @@ void runMotorLeft() {
  * setMotor????() Set pw and diriction. pw between -254 & +255
  ******************************************************************************/
 void setMotorRight(int pw) {
+  pw = constrain(pw, -254, 255);
+  motorPwRight = pw; 
   int dir = (pw >= 0) ? LOW : HIGH;
   pw = abs(pw);
   if (isBatteryCritical) pw = 0;
-  else if (!isRunning) pw = 0;
-  else if (pw > 255) pw = 255;
-  else if (pw < 0) pw = 0;
+  if (!isRunning) pw = 0;
   digitalWrite(DIR_RIGHT_PIN, dir);
   analogWrite(PWM_RIGHT_PIN, pw);
-  motorPwRight = pw; 
 }
 
 void setMotorLeft(int pw) {
+  pw = constrain(pw, -254, 255);
+  motorPwLeft = pw;
   int dir = (pw >= 0) ? HIGH : LOW;
   pw = abs(pw);
   if (isBatteryCritical) pw = 0;
-  else if (!isRunning) pw = 0;
-  else if (pw > 255) pw = 255;
-  else if (pw < 0) pw = 0;
+  if (!isRunning) pw = 0;
   digitalWrite(DIR_LEFT_PIN, dir);
   analogWrite(PWM_LEFT_PIN, pw);
-  motorPwLeft = pw;
 }

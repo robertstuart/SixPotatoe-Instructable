@@ -19,6 +19,7 @@ private:
   void checkDrift(float gyroPitchDelta, float gyroRollDelta, float gyroYawDelta);
   void setDrift(float pitchAve, float rollAve, float yawAve);
   void checkError(const char* s);
+  void readAG();
   
   bool isError = false;
   const static int DRIFT_SIZE = 100;  // 1/2 second of data
@@ -44,6 +45,8 @@ public:
   float maYaw = 0.0;
   
   float gyroPitchDelta = 0;
+  float gyroRollDelta = 0;
+  float gyroYawDelta = 0;
   float gaPitch = 0;
   float gHeading = 0;
   float gaRoll = 0;

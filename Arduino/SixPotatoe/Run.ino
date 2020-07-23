@@ -9,13 +9,10 @@
 void run() {
   commonTasks();
   if (imu.isNewImuData()) {
-    
     if (isRouteInProgress) routeControl(); 
     else rcControl();
-
     setCoKph();
-    if (isUpright) balance();
-      
+    if (isUpright) balance();    
     runMotors();
     blinkTeensy();
     updateCartesian();

@@ -14,7 +14,7 @@ void commonTasks() {
   checkUpright();
   checkController();
   setRunningState();
-  checkLogDump();
+  checkConsole();
   battery();
 }
 
@@ -137,30 +137,42 @@ void checkUpright() {
 
 
 /*****************************************************************************-
- * checkLogDump() Dump the log to the terminal so that the data can be 
- *                captured and analyzed by Excel.
+ * checkConsole() Check console for input.
  *****************************************************************************/
-void checkLogDump() {
+void checkConsole() {
   while (Serial.available() > 0) {
     char c = Serial.read();
     if (c == 'd') {
       Serial.println(logHeader);
-      int end = (isLogFloatWrap) ? N_FLOAT_LOGS : logFloatCount;
-      for (int i = 0; i < end; i++) {
-        Serial.printf("%12.3f,%9.3f,%9.2f,%9.2f,%9.2f,%9.2f,%9.2f,%9.2f\n", 
-                      logFloats[0][i],
-                      logFloats[1][i],
-                      logFloats[2][i],
-                      logFloats[3][i],
-                      logFloats[4][i],
-                      logFloats[5][i],
-                      logFloats[6][i],
-                      logFloats[7][i]);;
+      if (N_4FLOAT_LOGS > 1) {
+        int end = (isLog4FloatWrap) ? N_4FLOAT_LOGS : log4FloatCount;
+        for (int i = 0; i < end; i++) {
+          Serial.printf("%12.3f,%9.3f,%9.2f,%9.2f\n", 
+                        log4Floats[0][i],
+                        log4Floats[1][i],
+                        log4Floats[2][i],
+                        log4Floats[3][i]);
+        }
+      } else if (N_8FLOAT_LOGS > 1) {
+        int end = (isLog8FloatWrap) ? N_8FLOAT_LOGS : log8FloatCount;
+        for (int i = 0; i < end; i++) {
+          Serial.printf("%12.3f,%9.3f,%9.2f,%9.2f,%9.2f,%9.2f,%9.2f,%9.2f\n", 
+                        log8Floats[0][i],
+                        log8Floats[1][i],
+                        log8Floats[2][i],
+                        log8Floats[3][i],
+                        log8Floats[4][i],
+                        log8Floats[5][i],
+                        log8Floats[6][i],
+                        log8Floats[7][i]);
+        }
       }
     } else if (c == 'z') {
       Serial.println("Log set to zero.");
-      logFloatCount = 0;
-      isLogFloatWrap = false;
+      log4FloatCount = 0;
+      isLog4FloatWrap = false;
+      log8FloatCount = 0;
+      isLog8FloatWrap = false;
     } else if (c == 't') {
       Serial.println("--------------Right-----------");
       for (int i = 0; i < tcRight; i++) {
@@ -171,6 +183,10 @@ void checkLogDump() {
       for (int i = 0; i < tcLeft; i++) {
         Serial.printf("%d, %d\n", (int) tickLogLeft[i], intLogLeft[i]);
       }
+    } else if (c == 'e') {
+      Serial.printf("Right: %6d %6d %6d\nLeft:  %6d %6d %6d\n", 
+                    interruptErrorsRightA, interruptErrorsRightB, interruptErrorsRightC,
+                    interruptErrorsLeftA, interruptErrorsLeftB, interruptErrorsLeftC);
     }
   }
 }
@@ -204,36 +220,32 @@ void addTickLogLeft(unsigned long time, bool isA, bool isRise) {
 
 
 /*****************************************************************************-
- * addLog()
+ * add?Log()
  *****************************************************************************/
-void addLog(float a, float b, float c, float d) {
-  logFloats[0][logFloatCount] = a;
-  logFloats[1][logFloatCount] = b;
-  logFloats[2][logFloatCount] = c;
-  logFloats[3][logFloatCount] = d;
-  logFloats[4][logFloatCount] = 0.0;
-  logFloats[5][logFloatCount] = 0.0;
-  logFloats[6][logFloatCount] = 0.0;
-  logFloats[7][logFloatCount] = 0.0;
-  logFloatCount++;
-  if (logFloatCount >= N_FLOAT_LOGS) {
-    logFloatCount = 0;
-    isLogFloatWrap = true;
+void add4Log(float a, float b, float c, float d) {
+  log4Floats[0][log4FloatCount] = a;
+  log4Floats[1][log4FloatCount] = b;
+  log4Floats[2][log4FloatCount] = c;
+  log4Floats[3][log4FloatCount] = d;
+  log4FloatCount++;
+  if (log4FloatCount >= N_4FLOAT_LOGS) {
+    log4FloatCount = 0;
+    isLog4FloatWrap = true;
   }
 }
-void addLog(float a, float b, float c, float d, float e, float f, float g, float h) {
-  logFloats[0][logFloatCount] = a;
-  logFloats[1][logFloatCount] = b;
-  logFloats[2][logFloatCount] = c;
-  logFloats[3][logFloatCount] = d;
-  logFloats[4][logFloatCount] = e;
-  logFloats[5][logFloatCount] = f;
-  logFloats[6][logFloatCount] = g;
-  logFloats[7][logFloatCount] = h;
-  logFloatCount++;
-  if (logFloatCount >= N_FLOAT_LOGS) {
-    logFloatCount = 0;
-    isLogFloatWrap = true;
+void add8Log(float a, float b, float c, float d, float e, float f, float g, float h) {
+  log8Floats[0][log8FloatCount] = a;
+  log8Floats[1][log8FloatCount] = b;
+  log8Floats[2][log8FloatCount] = c;
+  log8Floats[3][log8FloatCount] = d;
+  log8Floats[4][log8FloatCount] = e;
+  log8Floats[5][log8FloatCount] = f;
+  log8Floats[6][log8FloatCount] = g;
+  log8Floats[7][log8FloatCount] = h;
+  log8FloatCount++;
+  if (log8FloatCount >= N_8FLOAT_LOGS) {
+    log8FloatCount = 0;
+    isLog8FloatWrap = true;
   }
 }
 

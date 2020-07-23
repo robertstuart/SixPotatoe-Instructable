@@ -7,7 +7,8 @@
  *            
  *****************************************************************************/
 #include "IMU.h"
-#define sampleFreq  200.0f      // sample frequency in Hz
+// 4354 usec/read
+#define sampleFreq  229.7f      // sample frequency in Hz
 #define WIRE_PORT Wire  // Your desired Wire port.      Used when "USE_SPI" is not defined
 #define AD0_VAL   1     // The value of the last bit of the I2C address.
                         // On the SparkFun 9DoF IMU breakout the default is 1, and when
@@ -40,8 +41,10 @@ void IMU::imuInit(TwoWire &wirePort, uint8_t ad0_val) {
 
   // Set sample rate
   ICM_20948_smplrt_t mySmplrt;
-  mySmplrt.g = (1125/sampleFreq) - 1;
-  mySmplrt.a = (1125/sampleFreq) - 1;
+  mySmplrt.g = 4;
+  mySmplrt.a = 4;
+//  mySmplrt.g = (1125/sampleFreq) - 1;
+//  mySmplrt.a = (1125/sampleFreq) - 1;
   icm20948.setSampleRate( ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr, mySmplrt );
   checkError("setSample");
 
@@ -193,16 +196,26 @@ void MahonyAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float
                 Reads the IMU and sets the new values.
  *****************************************************************************/
 boolean IMU::isNewImuData() {
-
+  const float ACCEL_SCALE = 4096.0;
+  const float GYRO_SCALE = 16.4;
+  const uint8_t numbytes = 12;
+  uint8_t buff[numbytes];
   if (icm20948.dataReady()) {
-    icm20948.getAGMT();
-    accelX   = icm20948.accX() / 1000;  // divide to get units in g
-    accelY   = icm20948.accY() / 1000;  // divide to get units in g
-    accelZ   = icm20948.accZ() / 1000;  // divide to get units in g
-
-    float gyroPitchDelta = icm20948.gyrX(); // better to do offset dynamically TODO
-    float gyroRollDelta = icm20948.gyrY();
-    float gyroYawDelta = icm20948.gyrZ();
+    icm20948.read((uint8_t) AGB0_REG_ACCEL_XOUT_H, buff, numbytes);
+    int16_t accRawX = ((buff[0] << 8) | (buff[1] & 0xFF));
+    int16_t accRawY = ((buff[2] << 8) | (buff[3] & 0xFF));
+    int16_t accRawZ = ((buff[4] << 8) | (buff[5] & 0xFF));
+    int16_t gyrRawX = ((buff[6] << 8) | (buff[7] & 0xFF));
+    int16_t gyrRawY = ((buff[8] << 8) | (buff[9] & 0xFF));
+    int16_t gyrRawZ = ((buff[10] << 8) | (buff[11] & 0xFF));
+  
+    accelX = ((float) accRawX) / ACCEL_SCALE;
+    accelY = ((float) accRawY) / ACCEL_SCALE;
+    accelZ = ((float) accRawZ) / ACCEL_SCALE;
+    gyroPitchDelta = ((float) gyrRawX) / GYRO_SCALE;
+    gyroRollDelta = ((float) gyrRawY) / GYRO_SCALE;
+    gyroYawDelta = ((float) gyrRawZ) / GYRO_SCALE;
+    
     checkDrift(gyroPitchDelta, gyroRollDelta, gyroYawDelta);
     gyroPitchDelta -= timeDriftPitch;
     gyroRollDelta -= timeDriftRoll;
@@ -243,7 +256,7 @@ boolean IMU::isNewImuData() {
 
 /*****************************************************************************-
  * checkDrift()  Called 200/sec.  Averages gyroDrift for x, y & z
- *              for 1/2 second periods.
+ *               for 1/2 second periods.
  *****************************************************************************/
 void IMU::checkDrift(float gyroPitchDelta, float gyroRollDelta, float gyroYawDelta) {
   static int gPtr = 0;
