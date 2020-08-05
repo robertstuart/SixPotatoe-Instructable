@@ -38,6 +38,7 @@ void rcControl() {
   float x = constrain(controllerX, -.9999, 0.9999);
   float sign = (x < 0.0) ? 1.0 : -1.0;
   float diff = pow(abs(x), 2.4) * sign;
+  if (lpWKph < 0.0) diff = -diff;
 
   // Limit radius at higher speeds.
   float maxDiff = 2.0 / abs(lpWKph); 
