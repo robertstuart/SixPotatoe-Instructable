@@ -404,8 +404,8 @@ void ch3Isr() {
   if (digitalReadFast(CH3_RADIO_PIN)) {
     riseTime = t;
   } else {
-    int ch3pw = t - riseTime;
-    ch3State = (ch3pw < 1500) ? false : true;
+    ch3Pw = t - riseTime;
+    ch3State = (ch3Pw < 1500) ? false : true;
   }
 }
 void ch4Isr() {
@@ -414,9 +414,9 @@ void ch4Isr() {
   if (digitalReadFast(CH4_RADIO_PIN)) {
     riseTime = t;
   } else {
-    int ch4pw = t - riseTime;
-    if (ch4pw < 1200) ch4State = 0;
-    else if (ch4pw < 1800) ch4State = 1;
+    ch4Pw = t - riseTime;
+    if (ch4Pw < 1400) ch4State = 0;
+    else if (ch4Pw < 1620) ch4State = 1;
     else ch4State = 2;
   }
 }
@@ -426,8 +426,8 @@ void ch5Isr() {
   if (digitalReadFast(CH5_RADIO_PIN)) {
     riseTime = t;
   } else {
-    int ch5pw = t - riseTime;
-    ch5Val = ( 2.0 * ((float) (ch5pw - RC_MID))) / RC_RANGE;
+    ch5Pw = t - riseTime;
+    ch5Val = ( 2.0 * ((float) (ch5Pw - RC_MID))) / RC_RANGE;
     if (ch5Val < -0.75) ch5State = 0;
     else if (ch5Val < -0.25) ch5State = 1;
     else if (ch5Val < 0.25) ch5State = 2;

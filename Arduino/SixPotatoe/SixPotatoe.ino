@@ -173,10 +173,13 @@ double coTickPosition = 0.0;
 
 // RC variables
 volatile float controllerX = 0.0;   // ch1 steering
-float controllerY = 0.0;   // ch2 accelerator, limited rate
+volatile float controllerY = 0.0;   // ch2 throttle/accelerator
+volatile int ch3Pw = 0;
 volatile boolean ch3State = false;  // ch3 toggle
+volatile int ch4Pw = 0; 
 volatile int ch4State = 0;          // ch4 3-position switch
 volatile float ch5Val = 0.0;        // ch5 top left potentiometer
+volatile int ch5Pw = 0;
 volatile int ch5State = 0;          // ch5 states 1-5
 volatile float ch6Val = 0.0;        // ch6 top right potentiometer.
 
@@ -291,8 +294,10 @@ void systemTest2() {  // Check the RC controller
   if (imu.isNewImuData()) {
     if ((m++ % 10) == 0) { 
       digitalWrite(LED_PIN, (toggle = !toggle) ? HIGH : LOW);
-      Serial.printf("ch1:%5.2f     ch2:%5.2f     ch3:%1d     ch4:%1d     ch5:%5.2f   ch5St5ate:%1d    ch6:%5.2f\n", 
-                    controllerX, controllerY, ch3State, ch4State, ch5Val, ch5State, ch6Val);
+//      Serial.printf("ch1:%5.2f     ch2:%5.2f     ch3:%1d     ch4:%1d     ch5:%5.2f   ch5St5ate:%1d    ch6:%5.2f\n", 
+//                    controllerX, controllerY, ch3State, ch4State, ch5Val, ch5State, ch6Val);
+      Serial.printf("ch1:%5.2f     ch2:%5.2f     ch3:%1d     ch4:%1d     ch5:%2d   ch3Pw:%4d  ch4pw:%4d  ch5Pw:%4d\n", 
+                    controllerX, controllerY, ch3State, ch4State, ch5State, ch3Pw, ch4Pw, ch5Pw);
     }
     blinkTeensy();
   }
