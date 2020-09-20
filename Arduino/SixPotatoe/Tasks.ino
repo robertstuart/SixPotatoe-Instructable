@@ -300,8 +300,8 @@ void battery() {
         float v = voltArray[i];
         if (v > max) max = v;
       }
-      if (max < 18.0) isBatteryCritical = true;
-      if (max < 19.0) isBatteryWarn = true;
+      if (max < (18.0 * BATT_ADJUST)) isBatteryCritical = true;
+      if (max < (19.0 * BATT_ADJUST)) isBatteryWarn = true;
     }
   }
 }

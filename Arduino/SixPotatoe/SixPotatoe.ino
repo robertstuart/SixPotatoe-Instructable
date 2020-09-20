@@ -50,6 +50,7 @@ const float K13_MULT = 1.0;             // Constrain pitch error
 const float K14_MULT = 1.0;             // Angle error gain
 #endif // YELLOW_1150
 
+const float BATT_ADJUST = BATTERY_VOLTS / 25.2;
 const float MAX_MOTOR_RPM = (BATTERY_VOLTS / NOMINAL_VOLTS) * MOTOR_RPM;
 const float TICKS_PER_ROTATION = MOTOR_EVENTS * MOTOR_GEAR_RATIO;
 const float MAX_MOTOR_KPH =  (WHEEL_DIA_MM * M_PI * MAX_MOTOR_RPM * 60.0) / 1000000.0;
